@@ -1,0 +1,14 @@
+# Portail client AlloTech72
+User-agent: *
+Allow: /login
+Allow: /register
+Allow: /mentions-legales
+Allow: /politique-confidentialite
+Allow: /cgu
+Disallow: /interventions
+Disallow: /messages
+Disallow: /quotes
+Disallow: /invoices
+Disallow: /notifications
+
+Sitemap: https://portal.allotech72.fr/sitemap.xml

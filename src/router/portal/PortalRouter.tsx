@@ -13,6 +13,9 @@ import { PortalHistoryPage } from '@/modules/portal/pages/PortalHistoryPage'
 import { PortalMessagesPage } from '@/modules/portal/pages/PortalMessagesPage'
 import { PortalNotificationsPage } from '@/modules/portal/pages/PortalNotificationsPage'
 import { PortalAuthBridge } from '@/modules/portal/components/PortalAuthBridge'
+import { PortalCguPage } from '@/modules/portal/legal/pages/PortalCguPage'
+import { PortalLegalMentionsPage } from '@/modules/portal/legal/pages/PortalLegalMentionsPage'
+import { PortalPrivacyPolicyPage } from '@/modules/portal/legal/pages/PortalPrivacyPolicyPage'
 import { PortalProtectedRoute } from '@/router/portal/PortalProtectedRoute'
 import { PortalPublicRoute } from '@/router/portal/PortalPublicRoute'
 
@@ -21,6 +24,10 @@ export function PortalRouter() {
     <>
       <PortalAuthBridge />
       <Routes>
+      <Route path="mentions-legales" element={<PortalLegalMentionsPage />} />
+      <Route path="politique-confidentialite" element={<PortalPrivacyPolicyPage />} />
+      <Route path="cgu" element={<PortalCguPage />} />
+
       <Route element={<PortalPublicRoute />}>
         <Route path="login" element={<PortalLoginPage />} />
         <Route path="register" element={<PortalRegisterPage />} />

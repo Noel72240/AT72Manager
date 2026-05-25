@@ -153,7 +153,7 @@ export function PortalShell({ children }: PortalShellProps) {
         ) : null}
       </AnimatePresence>
 
-      <main className="portal-safe-bottom relative z-10 flex min-h-0 min-h-[100dvh] flex-1 flex-col lg:min-h-0">
+      <main className="portal-safe-bottom relative z-10 flex min-h-0 min-h-[100dvh] w-full flex-1 flex-col lg:min-h-0">
         {children}
       </main>
     </div>

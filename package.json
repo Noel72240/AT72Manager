@@ -21,7 +21,9 @@
     "typecheck": "tsc -b --noEmit",
     "version:sync": "node scripts/sync-version.mjs",
     "icons:generate": "powershell -ExecutionPolicy Bypass -File scripts/prepare-app-icon.ps1 && tauri icon branding/app-icon-square.png -o src-tauri/icons",
-    "build:portal": "cross-env VITE_PORTAL_STANDALONE=true vite build --config vite.portal.config.ts --mode portal-production && node scripts/portal-postbuild.mjs",
+    "vercel-build": "npm run build:portal",
+    "build:portal": "cross-env VITE_PORTAL_STANDALONE=true vite build --config vite.portal.config.ts --mode portal-production && node scripts/portal-postbuild.mjs && node scripts/verify-portal-dist.mjs",
+    "dev:portal": "vite --config vite.portal.config.ts --mode portal-production --port 4174",
     "preview:portal": "vite preview --config vite.portal.config.ts --outDir dist-portal --port 4173",
     "verify:portal": "node scripts/verify-portal-env.mjs"
   },

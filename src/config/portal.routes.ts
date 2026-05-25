@@ -14,6 +14,9 @@ export const PORTAL_ROUTES = {
   HISTORY: portalPaths.history(),
   MESSAGES: portalPaths.messages(),
   NOTIFICATIONS: portalPaths.notifications(),
+  MENTIONS_LEGALES: portalPaths.mentionsLegales(),
+  PRIVACY: portalPaths.privacy(),
+  CGU: portalPaths.cgu(),
 } as const
 
 export type PortalRoute = (typeof PORTAL_ROUTES)[keyof typeof PORTAL_ROUTES]

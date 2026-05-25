@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
   const appVersion = env.VITE_APP_VERSION || pkg.version
 
   return {
+    base: '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

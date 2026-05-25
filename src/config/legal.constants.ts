@@ -1,0 +1,25 @@
+/** Informations légales ALLOTECH72 — portail client & pages juridiques. */
+export const LEGAL = {
+  companyName: 'ALLOTECH72',
+  legalForm: 'Entrepreneur individuel',
+  director: 'Noël Liebault',
+  siren: '990060972',
+  siret: '99006097200017',
+  vat: 'FR54990060972',
+  addressLine1: '7 rue de la Rentière',
+  addressLine2: '72450 Lombron',
+  country: 'France',
+  activity:
+    'Réparation d’ordinateurs et d’équipements périphériques',
+  email: 'contact@allotech72.fr',
+  emailHref: 'mailto:contact@allotech72.fr',
+  siteUrl: 'https://www.allotech72.fr',
+  portalUrl: 'https://portal.allotech72.fr',
+  hostingProvider: 'Vercel Inc.',
+  hostingAddress: '440 N Barranca Ave #4133, Covina, CA 91723, États-Unis',
+  databaseProvider: 'Supabase, Inc.',
+  databaseRegion: 'Union européenne (selon configuration projet)',
+  productName: 'Portail client AT72Manager',
+  lastUpdated: '25 mai 2026',
+  dpoContact: 'contact@allotech72.fr',
+} as const

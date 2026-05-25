@@ -27,4 +27,7 @@ export const portalPaths = {
   history: () => portalPrefix('/history'),
   messages: () => portalPrefix('/messages'),
   notifications: () => portalPrefix('/notifications'),
+  mentionsLegales: () => portalPrefix('/mentions-legales'),
+  privacy: () => portalPrefix('/politique-confidentialite'),
+  cgu: () => portalPrefix('/cgu'),
 } as const

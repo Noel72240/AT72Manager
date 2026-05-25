@@ -9,9 +9,18 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { PortalAuthError } from '@/services/portal/portal-auth.service'
 import { usePortalAuthStore } from '@/store/portal-auth.store'
+import { PortalLegalFooter } from '@/modules/portal/legal/components/PortalLegalFooter'
+import { usePortalPageMeta } from '@/modules/portal/legal/hooks/usePortalPageMeta'
+import { LEGAL } from '@/config/legal.constants'
 import { toast } from '@/store/toast.store'
 
 export function PortalRegisterPage() {
+  usePortalPageMeta({
+    title: 'Créer un compte',
+    description: `Inscription à l’espace client ${LEGAL.companyName} avec votre code atelier.`,
+    robots: 'index, follow',
+  })
+
   const navigate = useNavigate()
   const signUp = usePortalAuthStore((s) => s.signUp)
   const [email, setEmail] = useState('')
@@ -44,7 +53,8 @@ export function PortalRegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+    <div className="flex min-h-[100dvh] flex-col bg-background">
+    <div className="flex flex-1 items-center justify-center px-4 py-12">
       <motion.form
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -107,7 +117,21 @@ export function PortalRegisterPage() {
             Déjà un compte ? Se connecter
           </Link>
         </p>
+
+        <p className="mt-4 text-center text-[10px] leading-relaxed text-text-muted">
+          En créant un compte, vous acceptez les{' '}
+          <Link to={PORTAL_ROUTES.CGU} className="text-neon-blue hover:underline">
+            CGU
+          </Link>{' '}
+          et la{' '}
+          <Link to={PORTAL_ROUTES.PRIVACY} className="text-neon-blue hover:underline">
+            politique de confidentialité
+          </Link>
+          .
+        </p>
       </motion.form>
+    </div>
+    <PortalLegalFooter variant="compact" />
     </div>
   )
 }

@@ -96,8 +96,13 @@ L’atelier copie alors l’URL d’inscription **publique** depuis la fiche cli
 | `/messages` | Messagerie |
 | `/quotes`, `/invoices` | Devis / factures |
 | `/notifications` | Notifications |
+| `/mentions-legales` | Mentions légales |
+| `/politique-confidentialite` | Politique de confidentialité (RGPD) |
+| `/cgu` | Conditions générales d’utilisation |
 
 Vercel `rewrites` → `index.html` (SPA).
+
+Pages juridiques accessibles sans connexion ; footer présent sur tout le portail.
 
 ## Sécurité (RLS Supabase)
 

@@ -11,8 +11,16 @@ import { Input } from '@/components/ui/Input'
 import { PortalAuthError } from '@/services/portal/portal-auth.service'
 import { usePortalAuthStore } from '@/store/portal-auth.store'
 import { toast } from '@/store/toast.store'
+import { PortalLegalFooter } from '@/modules/portal/legal/components/PortalLegalFooter'
+import { usePortalPageMeta } from '@/modules/portal/legal/hooks/usePortalPageMeta'
+import { LEGAL } from '@/config/legal.constants'
 
 export function PortalLoginPage() {
+  usePortalPageMeta({
+    title: 'Connexion',
+    description: `Connectez-vous à votre espace client ${LEGAL.companyName}.`,
+    robots: 'index, follow',
+  })
   const navigate = useNavigate()
   const signIn = usePortalAuthStore((s) => s.signIn)
   const [email, setEmail] = useState('')
@@ -38,7 +46,8 @@ export function PortalLoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0a0c12] px-4 py-12">
+    <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-[#0a0c12]">
+    <div className="relative flex flex-1 flex-col items-center justify-center px-4 py-12">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_20%,rgba(0,207,255,0.12),transparent)]" />
 
       <motion.div
@@ -109,7 +118,19 @@ export function PortalLoginPage() {
             </Link>
           </p>
         ) : null}
+
+        <p className="mt-6 text-center text-[10px] leading-relaxed text-text-muted">
+          <Link to={PORTAL_ROUTES.CGU} className="hover:text-neon-blue">
+            CGU
+          </Link>
+          {' · '}
+          <Link to={PORTAL_ROUTES.PRIVACY} className="hover:text-neon-blue">
+            Confidentialité
+          </Link>
+        </p>
       </motion.div>
+    </div>
+    <PortalLegalFooter variant="compact" />
     </div>
   )
 }

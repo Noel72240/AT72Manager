@@ -2,11 +2,13 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { PortalProviders } from '@/portal/PortalProviders'
 import { PortalRouter } from '@/router/portal/PortalRouter'
 import { PORTAL_ROUTES } from '@/config/portal.routes'
-import { RootErrorBoundary } from '@/components/ui/RootErrorBoundary'
+import { PortalRootErrorBoundary } from '@/components/ui/PortalRootErrorBoundary'
+import { PortalSupabaseConfigBanner } from '@/modules/portal/components/PortalSupabaseConfigBanner'
 
 export function PortalApp() {
   return (
-    <RootErrorBoundary>
+    <PortalRootErrorBoundary>
+      <PortalSupabaseConfigBanner />
       <PortalProviders>
         <BrowserRouter>
           <Routes>
@@ -15,6 +17,6 @@ export function PortalApp() {
           </Routes>
         </BrowserRouter>
       </PortalProviders>
-    </RootErrorBoundary>
+    </PortalRootErrorBoundary>
   )
 }
