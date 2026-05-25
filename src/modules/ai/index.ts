@@ -1,0 +1,5 @@
+export { AiAssistantPage } from '@/modules/ai/pages/AiAssistantPage'
+export { AiChatPanel } from '@/modules/ai/components/AiChatPanel'
+export { AiAssistantButton } from '@/modules/ai/components/AiAssistantButton'
+export { AiDiagnosticWidget } from '@/modules/ai/components/AiDiagnosticWidget'
+export { useAiAssistant } from '@/modules/ai/hooks/useAiAssistant'

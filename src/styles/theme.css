@@ -1,0 +1,44 @@
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* Palette premium AT72Manager */
+  --color-background: #0d0f1b;
+  --color-surface: #13151f;
+  --color-surface-elevated: #1a1d2e;
+  --color-surface-hover: #222638;
+  --color-border: #ffffff0f;
+  --color-border-subtle: #ffffff08;
+
+  --color-neon-blue: #00cfff;
+  --color-neon-green: #00ff94;
+
+  --color-primary: #00cfff;
+  --color-primary-hover: #33d9ff;
+  --color-primary-muted: #00cfff14;
+  --color-primary-glow: #00cfff40;
+
+  --color-accent: #00ff94;
+  --color-accent-hover: #33ffb0;
+  --color-accent-muted: #00ff9414;
+  --color-accent-glow: #00ff9433;
+
+  --color-text-primary: #f0f2f8;
+  --color-text-secondary: #9499b0;
+  --color-text-muted: #5c6178;
+
+  --color-success: #00ff94;
+  --color-warning: #ffb84d;
+  --color-danger: #ff6b6b;
+
+  --shadow-glow-blue: 0 0 32px -4px rgb(0 207 255 / 0.35);
+  --shadow-glow-green: 0 0 32px -4px rgb(0 255 148 / 0.3);
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 4px 24px rgb(0 0 0 / 0.45);
+  --shadow-card-hover: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 8px 40px rgb(0 0 0 / 0.55),
+    0 0 24px -8px rgb(0 207 255 / 0.15);
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1rem;
+  --radius: 1.25rem;
+}

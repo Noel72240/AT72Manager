@@ -1,0 +1,21 @@
+/* Optimisations mobile — portail web public */
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .portal-safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 1023px) {
+  .portal-page {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  /* Évite le zoom iOS sur les champs */
+  .portal-input,
+  input.portal-input,
+  textarea.portal-input {
+    font-size: 16px !important;
+  }
+}

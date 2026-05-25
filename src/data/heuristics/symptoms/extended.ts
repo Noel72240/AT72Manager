@@ -1,0 +1,83 @@
+import { savRules } from '@/data/heuristics/rule-builder'
+
+/** Symptômes transverses complémentaires */
+export const EXTENDED_SYMPTOM_RULES = savRules(
+  {
+    id: 'bluetooth_fail',
+    label: 'Bluetooth HS / appairage impossible',
+    keywords: [
+      { term: 'bluetooth hs', weight: 3 },
+      { term: 'bt ne marche', weight: 2.8 },
+      { term: 'appairage impossible', weight: 2.8 },
+      { term: 'casque bluetooth', weight: 2 },
+    ],
+    causes: ['Module BT', 'Driver', 'Antenne BT', 'Interférences USB3'],
+    components: ['Carte Wi-Fi/BT', 'Antenne', 'Driver'],
+    tests: ['BT autre appareil', 'Désactiver USB3 test', 'MAJ driver Intel/Realtek'],
+    severity: 'low',
+    urgency: 'basse',
+  },
+  {
+    id: 'usb_device_not_recognized',
+    label: 'Périphérique USB non reconnu',
+    keywords: [
+      { term: 'usb non reconnu', weight: 3 },
+      { term: 'device not recognized', weight: 2.8 },
+      { term: 'cle usb invisible', weight: 2.8 },
+    ],
+    causes: ['Port USB', 'Alim USB', 'Driver', 'Périphérique mort'],
+    components: ['Port USB', 'Câble', 'Carte mère'],
+    tests: ['Autre port', 'Autre PC', 'Gestionnaire périphériques'],
+    severity: 'low',
+    urgency: 'basse',
+  },
+  {
+    id: 'windows_update_stuck',
+    label: 'MAJ Windows bloquée',
+    keywords: [
+      { term: 'windows update bloque', weight: 3 },
+      { term: 'update stuck', weight: 2.8 },
+      { term: 'maJ windows', weight: 2.5 },
+      { term: '0% update', weight: 2.5 },
+    ],
+    causes: ['Espace disque', 'Composants Windows corrompus', 'Driver conflit'],
+    components: ['SSD', 'RAM'],
+    tests: ['Windows Update troubleshooter', 'Nettoyage SoftwareDistribution', 'Espace libre 20 Go+'],
+    severity: 'low',
+    urgency: 'basse',
+    deviceBoost: { pc: 1.2, laptop: 1.2 },
+  },
+  {
+    id: 'motherboard_dead',
+    label: 'Carte mère morte / aucun POST',
+    keywords: [
+      { term: 'carte mere morte', weight: 3.2 },
+      { term: 'motherboard dead', weight: 3 },
+      { term: 'aucun post', weight: 2.8 },
+      { term: 'carte mere hs', weight: 3 },
+    ],
+    causes: ['VRM grillé', 'Liquid damage', 'Surge', 'BIOS brick'],
+    components: ['Carte mère', 'CPU (rare)', 'PSU'],
+    tests: ['Bench test minimal', 'Multimetre rails', 'Swap PSU/RAM known-good'],
+    severity: 'critical',
+    urgency: 'critique',
+    deviceBoost: { pc: 1.4, laptop: 1.3 },
+    synergies: [{ symptomId: 'short_circuit', bonus: 2.5 }, { symptomId: 'liquid_damage', bonus: 2 }],
+  },
+  {
+    id: 'capacitors_blown',
+    label: 'Condensateurs gonflés / odeur composant',
+    keywords: [
+      { term: 'condensateur gonfle', weight: 3 },
+      { term: 'capacitors', weight: 2.5 },
+      { term: 'odeur composant', weight: 2.8 },
+    ],
+    causes: ['Capacitors carte mère/PSU vieillissants', 'Surtension', 'Chaleur'],
+    components: ['Carte mère', 'PSU', 'GPU'],
+    tests: ['Inspection visuelle caps', 'Test alim scope'],
+    recommendations: ['Remplacer composants affectés — ne pas juste recapper sans diagnostic'],
+    severity: 'critical',
+    urgency: 'critique',
+    synergies: [{ symptomId: 'short_circuit', bonus: 2 }],
+  },
+)

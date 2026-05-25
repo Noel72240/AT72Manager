@@ -1,0 +1,9 @@
+[[permission]]
+identifier = "desktop-production"
+description = "Production desktop paths, logs and crash reports"
+commands.allow = [
+  "get_app_paths",
+  "write_native_log",
+  "write_crash_report",
+  "open_logs_folder",
+]

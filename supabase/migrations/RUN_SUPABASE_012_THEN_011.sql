@@ -1,0 +1,11 @@
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- Script combiné pour l'éditeur SQL Supabase (exécuter en une fois)
+-- Ordre : 012 fondation multi-atelier → 011 portail client
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- Copiez-collez le contenu de :
+--   1) 012_multi_workshop_foundation.sql  (ENTIER)
+--   2) 011_client_portal.sql              (ENTIER)
+--
+-- Ou via CLI :
+--   supabase db push
+-- ═══════════════════════════════════════════════════════════════════════════════
