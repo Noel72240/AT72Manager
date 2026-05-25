@@ -13,6 +13,7 @@ export type InterventionFieldValues = {
 
 export const EMPTY_INTERVENTION_MEDIA: InterventionMedia = {
   photos: [],
+  clientDocuments: [],
   clientSignature: undefined,
   technicianSignature: undefined,
 }

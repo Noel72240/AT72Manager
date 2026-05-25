@@ -5,14 +5,13 @@ import type {
   Client,
   Device,
   Intervention,
-  Invoice,
-  Quote,
   SparePart,
   ActivityFeedItem,
   StockMovement,
   SyncQueueItem,
 } from '@/types/entities'
 import type { StoredInterventionPhoto } from '@/modules/interventions/field/services/intervention-photo-storage.service'
+import type { InterventionDocument, InterventionDocumentEvent } from '@/types/entities/intervention-document.types'
 import { DB_NAME, DB_VERSION, STORES } from './schema'
 import type { BackupSnapshotRecord } from '@/services/backup/backup.types'
 import type { AuditLogEntry, SecurityLogEntry, UserSessionRecord } from '@/types/audit.types'
@@ -36,8 +35,22 @@ export interface AT72DbSchema extends DBSchema {
     value: StoredInterventionPhoto
     indexes: { 'by-intervention': string }
   }
-  quotes: { key: string; value: Quote }
-  invoices: { key: string; value: Invoice }
+  intervention_documents: {
+    key: string
+    value: InterventionDocument
+    indexes: { 'by-intervention': string }
+  }
+  intervention_document_events: {
+    key: string
+    value: InterventionDocumentEvent
+    indexes: { 'by-intervention': string; 'by-document': string }
+  }
+  intervention_document_blobs: {
+    key: string
+    value: { id: string; dataUrl: string }
+  }
+  quotes: { key: string; value: Record<string, unknown> }
+  invoices: { key: string; value: Record<string, unknown> }
   spare_parts: { key: string; value: SparePart }
   stock_movements: {
     key: string

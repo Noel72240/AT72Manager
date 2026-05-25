@@ -4,8 +4,6 @@ export type PermissionResource =
   | 'clients'
   | 'interventions'
   | 'stock'
-  | 'quotes'
-  | 'invoices'
   | 'backups'
   | 'ai'
   | 'settings'
@@ -34,8 +32,6 @@ export const ROLE_PERMISSIONS: Record<
     clients: ['read', 'create', 'update', 'delete'],
     interventions: ['read', 'create', 'update', 'delete'],
     stock: ['read', 'create', 'update', 'delete'],
-    quotes: ['read', 'create', 'update', 'delete'],
-    invoices: ['read', 'create', 'update', 'delete'],
     backups: ['read', 'create', 'restore', 'delete', 'manage'],
     ai: ['read', 'create', 'update', 'delete'],
     settings: ['read', 'update', 'manage'],
@@ -46,8 +42,6 @@ export const ROLE_PERMISSIONS: Record<
     clients: ['read', 'create', 'update', 'delete'],
     interventions: ['read', 'create', 'update', 'delete'],
     stock: ['read', 'update'],
-    quotes: ['read', 'create', 'update', 'delete'],
-    invoices: ['read', 'create', 'update', 'delete'],
     backups: ['read'],
     ai: ['read', 'create', 'update'],
     settings: ['read'],
@@ -58,8 +52,6 @@ export const ROLE_PERMISSIONS: Record<
     clients: ['read', 'create', 'update'],
     interventions: ['read', 'create', 'update', 'delete'],
     stock: ['read', 'update'],
-    quotes: ['read'],
-    invoices: ['read'],
     ai: ['read', 'create', 'update'],
     settings: [],
   },
@@ -67,8 +59,6 @@ export const ROLE_PERMISSIONS: Record<
     clients: ['read'],
     interventions: ['read'],
     stock: ['read'],
-    quotes: ['read'],
-    invoices: ['read'],
     ai: ['read'],
     settings: [],
   },

@@ -89,8 +89,6 @@ export const FEED_KIND_ROUTES: Partial<Record<FeedItemKind, string>> = {
   intervention_scheduled: ROUTES.CALENDAR,
   intervention_due_soon: ROUTES.CALENDAR,
   intervention_completed: ROUTES.INTERVENTIONS,
-  quote_accepted: ROUTES.QUOTES,
-  invoice_unpaid: ROUTES.INVOICES,
   backup_success: ROUTES.SETTINGS,
   backup_failed: ROUTES.SETTINGS,
   backup_restored: ROUTES.SETTINGS,

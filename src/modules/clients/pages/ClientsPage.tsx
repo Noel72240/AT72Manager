@@ -1,8 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ROUTES } from '@/config/routes'
-import { prefillFromClient } from '@/modules/commercial/utils/document-prefill'
 import type { Client } from '@/types/entities'
 import type { ClientFormValues } from '@/modules/clients/types/client-module.types'
 import {
@@ -44,7 +41,6 @@ function formValuesToPayload(values: ClientFormValues) {
 }
 
 export function ClientsPage() {
-  const navigate = useNavigate()
   const { clients, loading, saving, createClient, updateClient, removeClient } = useClients()
 
   const [filters, setFilters] = useState<ClientFilters>(DEFAULT_CLIENT_FILTERS)
@@ -149,11 +145,6 @@ export function ClientsPage() {
                   rows={rows}
                   onEdit={handleEdit}
                   onDelete={setDeleteTarget}
-                  onCreateQuote={(row) =>
-                    navigate(ROUTES.QUOTES, {
-                      state: { prefill: prefillFromClient(row.id) },
-                    })
-                  }
                   deletingId={deletingId}
                 />
                 <ClientsPagination

@@ -3,6 +3,10 @@ import { STORES } from '@/services/indexeddb/schema'
 import type { BackupArchive, BackupFormat, BackupSnapshotRecord, BackupSource } from '@/services/backup/backup.types'
 import { countBackupEntities } from '@/services/backup/backup-collect.service'
 import { getBackupSettings, pruneOldSnapshots } from '@/services/backup/backup-settings.service'
+import {
+  downloadBackupFromCloud,
+  resolveCloudBackupPath,
+} from '@/services/backup/backup-cloud-download.service'
 
 export async function listBackupSnapshots(userId: string): Promise<BackupSnapshotRecord[]> {
   const db = await getDb()
@@ -19,16 +23,34 @@ export async function getBackupSnapshot(id: string): Promise<BackupSnapshotRecor
 
 export async function getBackupSnapshotPayload(id: string): Promise<BackupArchive | undefined> {
   const record = await getBackupSnapshot(id)
-  if (!record?.payloadGzipBase64) return undefined
-  const { gunzipBase64ToString, parseBackupJson } = await import(
-    '@/services/backup/backup-compression.service'
-  )
-  try {
-    const json = gunzipBase64ToString(record.payloadGzipBase64)
-    return parseBackupJson(json)
-  } catch {
-    return undefined
+  if (!record) return undefined
+
+  if (record.payloadGzipBase64) {
+    const { gunzipBase64ToString, parseBackupJson } = await import(
+      '@/services/backup/backup-compression.service'
+    )
+    try {
+      const json = gunzipBase64ToString(record.payloadGzipBase64)
+      return parseBackupJson(json)
+    } catch {
+      /* fallback cloud ci-dessous */
+    }
   }
+
+  if (record.cloudStatus === 'uploaded') {
+    try {
+      const path =
+        record.cloudStoragePath ??
+        (await resolveCloudBackupPath(record.userId, record.createdAt, record.cloudStoragePath))
+      if (path) {
+        return await downloadBackupFromCloud(path)
+      }
+    } catch (error) {
+      console.warn('[backup] cloud payload download failed', error)
+    }
+  }
+
+  return undefined
 }
 
 export async function saveBackupSnapshot(input: {
@@ -71,7 +93,7 @@ export async function deleteBackupSnapshot(id: string): Promise<void> {
 export async function updateSnapshotCloudStatus(
   id: string,
   cloudStatus: BackupSnapshotRecord['cloudStatus'],
-  errorMessage?: string,
+  options?: { errorMessage?: string; cloudStoragePath?: string },
 ): Promise<void> {
   const record = await getBackupSnapshot(id)
   if (!record) return
@@ -79,6 +101,7 @@ export async function updateSnapshotCloudStatus(
   await db.put(STORES.backupSnapshots, {
     ...record,
     cloudStatus,
-    errorMessage,
+    errorMessage: options?.errorMessage,
+    cloudStoragePath: options?.cloudStoragePath ?? record.cloudStoragePath,
   })
 }

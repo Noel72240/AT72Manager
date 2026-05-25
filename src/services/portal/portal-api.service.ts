@@ -1,11 +1,16 @@
 import { ensureSupabaseClient, getSupabaseClient } from '@/services/supabase/client'
-import type { Client, Device, Intervention, Invoice, Quote } from '@/types/entities'
+import type { Client, Device, Intervention } from '@/types/entities'
 import type {
+  PortalInvoice,
   PortalMessage,
   PortalNotification,
+  PortalQuote,
   PortalQuoteValidation,
   PortalRepairEvent,
 } from '@/types/portal.types'
+import { normalizeInterventionMedia } from '@/modules/interventions/field/utils/media-utils'
+import { normalizePaymentStatus } from '@/modules/interventions/utils/payment-labels'
+import { interventionDocumentsService, AT72_DOCUMENTS_BUCKET, LEGACY_DOCUMENTS_BUCKET } from '@/services/interventions/intervention-documents.service'
 import { parseLines } from '@/services/database/repositories/commercial-map'
 
 function mapClient(row: Record<string, unknown>): Client {
@@ -45,7 +50,12 @@ function mapIntervention(row: Record<string, unknown>): Intervention {
     durationMinutes: Number(row.duration_minutes) || 60,
     estimatedPrice: row.estimated_price != null ? Number(row.estimated_price) : undefined,
     finalPrice: row.final_price != null ? Number(row.final_price) : undefined,
-    media: row.media as Intervention['media'],
+    depositAmount: row.deposit_amount != null ? Number(row.deposit_amount) : undefined,
+    paymentStatus: normalizePaymentStatus(row.payment_status),
+    billedViaQonto: Boolean(row.billed_via_qonto),
+    externalInvoiceRef: (row.external_invoice_ref as string | null) ?? undefined,
+    qontoDocumentUrl: (row.qonto_document_url as string | null) ?? undefined,
+    media: normalizeInterventionMedia(row.media as Intervention['media']),
     partsLines: parseLines(row.parts_lines),
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
@@ -53,14 +63,14 @@ function mapIntervention(row: Record<string, unknown>): Intervention {
   }
 }
 
-function mapQuote(row: Record<string, unknown>): Quote {
+function mapQuote(row: Record<string, unknown>): PortalQuote {
   return {
     id: row.id as string,
     number: row.number as string,
     clientId: row.client_id as string,
     interventionId: (row.intervention_id as string | null) ?? undefined,
     deviceId: (row.device_id as string | null) ?? undefined,
-    status: (row.status as Quote['status']) ?? 'draft',
+    status: (row.status as PortalQuote['status']) ?? 'draft',
     title: (row.title as string | null) ?? undefined,
     notes: (row.notes as string | null) ?? undefined,
     lines: parseLines(row.lines),
@@ -75,14 +85,14 @@ function mapQuote(row: Record<string, unknown>): Quote {
   }
 }
 
-function mapInvoice(row: Record<string, unknown>): Invoice {
+function mapInvoice(row: Record<string, unknown>): PortalInvoice {
   return {
     id: row.id as string,
     number: row.number as string,
     clientId: row.client_id as string,
     quoteId: (row.quote_id as string | null) ?? undefined,
     interventionId: (row.intervention_id as string | null) ?? undefined,
-    status: (row.status as Invoice['status']) ?? 'draft',
+    status: (row.status as PortalInvoice['status']) ?? 'draft',
     title: (row.title as string | null) ?? undefined,
     notes: (row.notes as string | null) ?? undefined,
     lines: parseLines(row.lines),
@@ -192,9 +202,18 @@ export const portalApiService = {
       repairEvents = (eventsRes.data ?? []).map((r) => mapRepairEvent(r as Record<string, unknown>))
     }
 
+    const interventions = (interventionsRes.data ?? []).map((r) =>
+      mapIntervention(r as Record<string, unknown>),
+    )
+
+    const portalDocuments = await interventionDocumentsService.listPortalDocuments(
+      clientId,
+      interventions,
+    )
+
     return {
       client: clientRes.data ? mapClient(clientRes.data as Record<string, unknown>) : null,
-      interventions: (interventionsRes.data ?? []).map((r) => mapIntervention(r as Record<string, unknown>)),
+      interventions,
       devices: (devicesRes.data ?? []).map((r) => {
         const row = r as Record<string, unknown>
         return {
@@ -216,6 +235,7 @@ export const portalApiService = {
       invoices: (invoicesRes.data ?? []).map((r) => mapInvoice(r as Record<string, unknown>)),
       messages: (messagesRes.data ?? []).map((r) => mapMessage(r as Record<string, unknown>)),
       notifications: (notificationsRes.data ?? []).map((r) => mapNotification(r as Record<string, unknown>)),
+      portalDocuments,
       repairEvents,
     }
   },
@@ -337,5 +357,16 @@ export const portalApiService = {
       intervention_id: params.interventionId ?? null,
       quote_id: params.quoteId ?? null,
     })
+  },
+
+  async getClientDocumentDownloadUrl(storagePath: string): Promise<string | null> {
+    const db = getSupabaseClient()
+    if (!db) return null
+
+    for (const bucket of [AT72_DOCUMENTS_BUCKET, LEGACY_DOCUMENTS_BUCKET]) {
+      const { data, error } = await db.storage.from(bucket).createSignedUrl(storagePath, 3600)
+      if (!error && data?.signedUrl) return data.signedUrl
+    }
+    return null
   },
 }

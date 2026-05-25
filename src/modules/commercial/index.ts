@@ -1,6 +1,5 @@
 export { LineItemsEditor } from '@/modules/commercial/components/LineItemsEditor'
 export { DocumentTotalsSummary } from '@/modules/commercial/components/DocumentTotalsSummary'
-export { useCommercialPdfExport } from '@/modules/commercial/hooks/useCommercialPdfExport'
 export type { DocumentPrefill } from '@/modules/commercial/types/commercial-module.types'
 export { computeDocumentTotals, createEmptyLine } from '@/modules/commercial/utils/document-totals'
 export { formatPrice } from '@/modules/commercial/utils/format-price'

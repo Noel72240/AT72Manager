@@ -17,9 +17,11 @@ import {
   gzipStringToBase64,
 } from '@/services/backup/backup-compression.service'
 import { saveBackupSnapshot } from '@/services/backup/backup-snapshot.service'
-import { uploadBackupToCloud } from '@/services/backup/backup-cloud.provider'
+import { uploadBackupToCloud, type CloudUploadResult } from '@/services/backup/backup-cloud.provider'
 
-const APP_VERSION = '0.1.0'
+import { env } from '@/config/env'
+
+const APP_VERSION = env.appVersion
 
 export async function buildBackupArchive(
   userId: string,
@@ -55,6 +57,7 @@ export async function exportBackup(options: BackupExportOptions): Promise<{
   snapshot?: BackupSnapshotRecord
   blob: Blob
   filename: string
+  cloudResult: CloudUploadResult
 }> {
   const label = options.label ?? `Sauvegarde ${options.source === 'auto' ? 'auto' : 'manuelle'}`
   const archive = await buildBackupArchive(options.userId, label, options.source ?? 'manual')
@@ -77,17 +80,21 @@ export async function exportBackup(options: BackupExportOptions): Promise<{
     })
   }
 
-  await uploadBackupToCloud(archive, blob, snapshot?.id)
+  const cloudBlob = archiveToZipBlob(archive)
+  const cloudResult = await uploadBackupToCloud(archive, cloudBlob, snapshot?.id)
 
-  return { archive, snapshot, blob, filename }
+  return { archive, snapshot, blob, filename, cloudResult }
 }
 
-export async function downloadBackupExport(options: BackupExportOptions): Promise<BackupSnapshotRecord | undefined> {
-  const { blob, filename, snapshot } = await exportBackup({ ...options, downloadFile: true })
+export async function downloadBackupExport(options: BackupExportOptions): Promise<{
+  snapshot?: BackupSnapshotRecord
+  cloudResult: CloudUploadResult
+}> {
+  const { blob, filename, snapshot, cloudResult } = await exportBackup({ ...options, downloadFile: true })
   if (options.downloadFile !== false) {
     downloadBlob(blob, filename)
   }
-  return snapshot
+  return { snapshot, cloudResult }
 }
 
 export function getExportFormatLabel(format: BackupFormat): string {

@@ -1,8 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ROUTES } from '@/config/routes'
-import { prefillFromIntervention } from '@/modules/commercial/utils/document-prefill'
 import type { Intervention } from '@/types/entities'
 import type { InterventionFormValues } from '@/modules/interventions/types/intervention-module.types'
 import {
@@ -16,6 +13,7 @@ import { filterAndSortInterventions } from '@/modules/interventions/utils/interv
 import { getDeviceSummary } from '@/modules/interventions/utils/intervention-labels'
 import { getClientFullName } from '@/modules/clients/utils/client-name'
 import { normalizeInterventionMedia } from '@/modules/interventions/field/utils/media-utils'
+import { interventionDocumentsService } from '@/services/interventions/intervention-documents.service'
 import { InterventionFormModal, parseOptionalPrice, resolveStoredModel } from '@/modules/interventions/components/InterventionFormModal'
 import { useInterventionPdfExport } from '@/modules/interventions/field/hooks/useInterventionPdfExport'
 import { InterventionsToolbar } from '@/modules/interventions/components/InterventionsToolbar'
@@ -27,6 +25,9 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/Skeleton'
 import { fadeInUp, staggerContainer } from '@/utils/motion'
+import { useAuthStore } from '@/store/auth.store'
+import { toast } from '@/store/toast.store'
+import { formatSupabaseError } from '@/utils/format-supabase-error'
 
 function formValuesToPayload(values: InterventionFormValues) {
   return {
@@ -41,17 +42,24 @@ function formValuesToPayload(values: InterventionFormValues) {
     status: values.status,
     estimatedPrice: parseOptionalPrice(values.estimatedPrice),
     finalPrice: parseOptionalPrice(values.finalPrice),
+    depositAmount: parseOptionalPrice(values.depositAmount),
+    paymentStatus: values.paymentStatus,
+    billedViaQonto: values.billedViaQonto,
+    externalInvoiceRef: values.externalInvoiceRef.trim() || undefined,
+    qontoDocumentUrl: values.qontoDocumentUrl.trim() || undefined,
     media: normalizeInterventionMedia(values.media),
     partsLines: values.partsLines.filter((line) => line.description.trim() || line.partId),
   }
 }
 
 export function InterventionsPage() {
-  const navigate = useNavigate()
-  const { interventions, loading, saving, createIntervention, updateIntervention, removeIntervention } =
+  const { interventions, loading, saving, createIntervention, updateIntervention, removeIntervention, fetchInterventions } =
     useInterventions()
   const { clients } = useClients()
   const { exportPdf, isExporting } = useInterventionPdfExport()
+  const workshopId = useAuthStore((state) => state.user?.workshopId)
+  const userId = useAuthStore((state) => state.user?.id)
+  const userName = useAuthStore((state) => state.user?.fullName ?? 'Atelier')
 
   const clientsById = useMemo(() => {
     const map = new Map<string, (typeof clients)[number]>()
@@ -112,16 +120,45 @@ export function InterventionsPage() {
   }
 
   const handleFormSubmit = async (values: InterventionFormValues) => {
+    const { pendingDocumentUploads, notifyClientOnDocuments } = values
     const payload = formValuesToPayload(values)
 
-    if (editingIntervention) {
-      const updated = await updateIntervention(editingIntervention.id, payload)
-      if (updated) handleFormClose()
-      return
-    }
+    try {
+      if (editingIntervention) {
+        const updated = await updateIntervention(editingIntervention.id, payload)
+        if (!updated) return
 
-    const created = await createIntervention(payload)
-    if (created) handleFormClose()
+        if (pendingDocumentUploads.length > 0 && workshopId && userId) {
+          await interventionDocumentsService.publishPending(updated, pendingDocumentUploads, {
+            workshopId,
+            userId,
+            actorName: userName,
+            notifyClient: notifyClientOnDocuments,
+          })
+          await fetchInterventions()
+        }
+
+        handleFormClose()
+        return
+      }
+
+      const created = await createIntervention(payload)
+      if (!created) return
+
+      if (pendingDocumentUploads.length > 0 && workshopId && userId) {
+        await interventionDocumentsService.publishPending(created, pendingDocumentUploads, {
+          workshopId,
+          userId,
+          actorName: userName,
+          notifyClient: notifyClientOnDocuments,
+        })
+        await fetchInterventions()
+      }
+
+      handleFormClose()
+    } catch (error) {
+      toast.error('Documents', formatSupabaseError(error))
+    }
   }
 
   const handleDeleteConfirm = async () => {
@@ -182,11 +219,6 @@ export function InterventionsPage() {
                   onDelete={setDeleteTarget}
                   onExportPdf={(row, kind) =>
                     void exportPdf(row, clientsById.get(row.clientId), kind)
-                  }
-                  onCreateQuote={(row) =>
-                    navigate(ROUTES.QUOTES, {
-                      state: { prefill: prefillFromIntervention(row) },
-                    })
                   }
                   isExporting={isExporting}
                   deletingId={deletingId}

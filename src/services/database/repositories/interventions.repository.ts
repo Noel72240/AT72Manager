@@ -5,13 +5,12 @@ import type {
   InterventionUpdate,
 } from '@/types/entities'
 import { normalizeInterventionStatus, normalizeInterventionPriority } from '@/modules/interventions/utils/intervention-labels'
-import { normalizeInterventionMedia } from '@/modules/interventions/field/utils/media-utils'
+import { normalizeInterventionMedia, sanitizeMediaForRemote } from '@/modules/interventions/field/utils/media-utils'
 import { mergeInterventionMedia } from '@/modules/interventions/field/utils/media-merge'
 import { photoDebug } from '@/modules/interventions/field/utils/photo-debug'
 import {
   deletePhotosForIntervention,
   hydrateInterventionMedia,
-  hydrateInterventions,
   persistInterventionPhotos,
 } from '@/modules/interventions/field/services/intervention-photo-storage.service'
 import { getDb } from '@/services/indexeddb/db'
@@ -19,6 +18,7 @@ import { STORES } from '@/services/indexeddb/schema'
 import { databaseService } from '@/services/database/database.service'
 import { syncService } from '@/services/sync/sync.service'
 import { parseLines, serializeLines } from '@/services/database/repositories/commercial-map'
+import { normalizePaymentStatus } from '@/modules/interventions/utils/payment-labels'
 
 function parsePrice(value: unknown): number | undefined {
   if (value === null || value === undefined || value === '') return undefined
@@ -59,12 +59,25 @@ function mapRow(row: Record<string, unknown>): Intervention {
     assignedTechnicianId: (row.assigned_technician_id as string | null) ?? undefined,
     estimatedPrice: parsePrice(row.estimated_price),
     finalPrice: parsePrice(row.final_price),
+    depositAmount: parsePrice(row.deposit_amount),
+    paymentStatus: normalizePaymentStatus(row.payment_status),
+    billedViaQonto: Boolean(row.billed_via_qonto),
+    externalInvoiceRef: (row.external_invoice_ref as string | null) ?? undefined,
+    qontoDocumentUrl: (row.qonto_document_url as string | null) ?? undefined,
     media: parseMedia(row.media),
     partsLines: parseLines(row.parts_lines),
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     userId: row.user_id as string,
   }
+}
+
+async function hydrateInterventionFull(intervention: Intervention): Promise<Intervention> {
+  return hydrateInterventionMedia(intervention)
+}
+
+async function hydrateInterventionsFull(interventions: Intervention[]): Promise<Intervention[]> {
+  return Promise.all(interventions.map((item) => hydrateInterventionFull(item)))
 }
 
 async function prepareMediaForSave(
@@ -76,14 +89,12 @@ async function prepareMediaForSave(
 
   if (photos.length === 0) {
     await deletePhotosForIntervention(interventionId)
-    return normalized
+  } else {
+    normalized.photos = await persistInterventionPhotos(interventionId, photos)
   }
 
-  const persistedPhotos = await persistInterventionPhotos(interventionId, photos)
-  return {
-    ...normalized,
-    photos: persistedPhotos,
-  }
+  delete normalized.clientDocuments
+  return normalized
 }
 
 async function upsertLocalMerged(intervention: Intervention): Promise<Intervention> {
@@ -102,7 +113,7 @@ async function upsertLocalMerged(intervention: Intervention): Promise<Interventi
     photos: withMedia.media?.photos?.length ?? 0,
   })
 
-  return hydrateInterventionMedia(withMedia)
+  return hydrateInterventionFull(withMedia)
 }
 
 function buildInsertRow(payload: InterventionInsert): Record<string, unknown> {
@@ -119,7 +130,12 @@ function buildInsertRow(payload: InterventionInsert): Record<string, unknown> {
     status: payload.status,
     estimated_price: payload.estimatedPrice ?? null,
     final_price: payload.finalPrice ?? null,
-    media: payload.media ?? {},
+    deposit_amount: payload.depositAmount ?? null,
+    payment_status: payload.paymentStatus ?? 'none',
+    billed_via_qonto: payload.billedViaQonto ?? false,
+    external_invoice_ref: payload.externalInvoiceRef ?? null,
+    qonto_document_url: payload.qontoDocumentUrl ?? null,
+    media: sanitizeMediaForRemote(payload.media) ?? {},
     parts_lines: payload.partsLines ?? [],
     title: payload.reportedIssue,
     description: payload.technicianNotes ?? null,
@@ -176,8 +192,23 @@ function mapToRow(payload: InterventionInsert | InterventionUpdate): Record<stri
   if ('finalPrice' in payload && payload.finalPrice !== undefined) {
     row.final_price = payload.finalPrice ?? null
   }
+  if ('depositAmount' in payload && payload.depositAmount !== undefined) {
+    row.deposit_amount = payload.depositAmount ?? null
+  }
+  if ('paymentStatus' in payload && payload.paymentStatus !== undefined) {
+    row.payment_status = payload.paymentStatus
+  }
+  if ('billedViaQonto' in payload && payload.billedViaQonto !== undefined) {
+    row.billed_via_qonto = payload.billedViaQonto
+  }
+  if ('externalInvoiceRef' in payload && payload.externalInvoiceRef !== undefined) {
+    row.external_invoice_ref = payload.externalInvoiceRef || null
+  }
+  if ('qontoDocumentUrl' in payload && payload.qontoDocumentUrl !== undefined) {
+    row.qonto_document_url = payload.qontoDocumentUrl || null
+  }
   if ('media' in payload && payload.media !== undefined) {
-    row.media = payload.media
+    row.media = sanitizeMediaForRemote(payload.media)
   }
   if ('partsLines' in payload && payload.partsLines !== undefined) {
     row.parts_lines = serializeLines(payload.partsLines)
@@ -191,14 +222,14 @@ export const interventionsRepository = {
   async listLocal(): Promise<Intervention[]> {
     const db = await getDb()
     const items = await db.getAll(STORES.interventions)
-    return hydrateInterventions(items)
+    return hydrateInterventionsFull(items)
   },
 
   async getLocal(id: string): Promise<Intervention | undefined> {
     const db = await getDb()
     const item = await db.get(STORES.interventions, id)
     if (!item) return undefined
-    return hydrateInterventionMedia(item)
+    return hydrateInterventionFull(item)
   },
 
   async upsertLocal(intervention: Intervention): Promise<Intervention> {
@@ -216,21 +247,30 @@ export const interventionsRepository = {
       return this.listLocal()
     }
 
+    const localAll = await this.listLocal()
+    const localById = new Map(localAll.map((item) => [item.id, item]))
     const rows = await databaseService.list('interventions')
     const hydrated: Intervention[] = []
 
     for (const row of rows) {
       const remote = mapRow(row as Record<string, unknown>)
-      const local = await this.getLocal(remote.id)
+      const local = localById.get(remote.id)
       const merged: Intervention = {
         ...remote,
         media: mergeInterventionMedia(local?.media, remote.media),
       }
       const saved = await upsertLocalMerged(merged)
       hydrated.push(saved)
+      localById.delete(remote.id)
     }
 
-    return hydrated
+    for (const orphan of localById.values()) {
+      hydrated.push(await hydrateInterventionFull(orphan))
+    }
+
+    return hydrated.sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    )
   },
 
   async getById(id: string): Promise<Intervention | null> {

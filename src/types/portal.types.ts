@@ -1,4 +1,49 @@
-import type { Client, Device, Intervention, Invoice, Quote } from '@/types/entities'
+import type { Client, Device, Intervention, CommercialLine } from '@/types/entities'
+
+export type PortalQuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected'
+
+export type PortalQuote = {
+  id: string
+  number: string
+  clientId: string
+  interventionId?: string
+  deviceId?: string
+  status: PortalQuoteStatus
+  title?: string
+  notes?: string
+  lines: CommercialLine[]
+  subtotal: number
+  vatTotal: number
+  total: number
+  validUntil?: string
+  convertedInvoiceId?: string
+  createdAt: string
+  updatedAt: string
+  userId: string
+}
+
+export type PortalInvoiceStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'paid'
+
+export type PortalInvoice = {
+  id: string
+  number: string
+  clientId: string
+  interventionId?: string
+  deviceId?: string
+  quoteId?: string
+  status: PortalInvoiceStatus
+  title?: string
+  notes?: string
+  lines: CommercialLine[]
+  subtotal: number
+  vatTotal: number
+  total: number
+  dueDate?: string
+  paidAt?: string
+  createdAt: string
+  updatedAt: string
+  userId: string
+}
 
 /** Étapes timeline portail SAV */
 export type PortalRepairStage =
@@ -119,8 +164,8 @@ export type PortalDataSnapshot = {
   client: Client
   interventions: Intervention[]
   devices: Device[]
-  quotes: Quote[]
-  invoices: Invoice[]
+  quotes: PortalQuote[]
+  invoices: PortalInvoice[]
   messages: PortalMessage[]
   notifications: PortalNotification[]
 }

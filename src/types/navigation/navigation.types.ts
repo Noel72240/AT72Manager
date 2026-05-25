@@ -5,8 +5,6 @@ export type NavItemId =
   | 'interventions'
   | 'clients'
   | 'devices'
-  | 'quotes'
-  | 'invoices'
   | 'parts'
   | 'stock'
   | 'calendar'

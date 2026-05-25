@@ -38,8 +38,13 @@ export const env = {
   isGoogleCalendarConfigured: Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim()),
   /** Endpoint futur pour tauri-plugin-updater (voir docs/DESKTOP_PRODUCTION.md). */
   updaterEndpoint: import.meta.env.VITE_UPDATER_ENDPOINT ?? '',
+  /** URL Qonto (ou autre outil comptable) — bouton « Ouvrir Qonto » */
+  qontoAppUrl: import.meta.env.VITE_QONTO_APP_URL ?? 'https://app.qonto.com',
   /** URL publique du portail client (Vercel). */
   portalPublicUrl: (import.meta.env.VITE_PORTAL_PUBLIC_URL ?? '').replace(/\/+$/, ''),
   isPortalStandalone: import.meta.env.VITE_PORTAL_STANDALONE === 'true',
   isPortalWeb: import.meta.env.VITE_PORTAL_STANDALONE === 'true' && !import.meta.env.TAURI_ENV_PLATFORM,
+  /** Taille max upload documents client (Mo) */
+  maxDocumentSizeMb: Number(import.meta.env.VITE_MAX_DOCUMENT_SIZE_MB) || 15,
+  documentSignedUrlTtlSec: Number(import.meta.env.VITE_DOCUMENT_SIGNED_URL_TTL_SEC) || 3600,
 } as const

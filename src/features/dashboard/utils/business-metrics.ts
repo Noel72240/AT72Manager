@@ -1,4 +1,4 @@
-import type { Invoice, Intervention, Quote, SparePart } from '@/types/entities'
+import type { Intervention, SparePart } from '@/types/entities'
 import type { InterventionStatus } from '@/types/entities/intervention.types'
 
 export type BusinessKpi = {
@@ -54,8 +54,6 @@ function avgRepairHours(interventions: Intervention[]): number {
 
 export function computeBusinessMetrics(
   interventions: Intervention[],
-  quotes: Quote[] = [],
-  invoices: Invoice[] = [],
   parts: SparePart[] = [],
 ): BusinessDashboardMetrics {
   const now = new Date()
@@ -120,18 +118,6 @@ export function computeBusinessMetrics(
       value: interventions.filter((i) => ACTIVE.includes(i.status)).length,
       format: 'number',
       hint: 'Dossiers actifs',
-    },
-    {
-      id: 'quotes-open',
-      label: 'Devis en cours',
-      value: quotes.filter((q) => q.status === 'draft' || q.status === 'sent').length,
-      format: 'number',
-    },
-    {
-      id: 'invoices-unpaid',
-      label: 'Factures ouvertes',
-      value: invoices.filter((i) => i.status !== 'paid').length,
-      format: 'number',
     },
     {
       id: 'sav-returns',

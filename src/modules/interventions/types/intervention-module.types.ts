@@ -1,5 +1,11 @@
 import type { CommercialLine } from '@/types/entities'
-import type { Intervention, InterventionStatus, InterventionMedia } from '@/types/entities/intervention.types'
+import type {
+  Intervention,
+  InterventionPaymentStatus,
+  InterventionStatus,
+  InterventionMedia,
+} from '@/types/entities/intervention.types'
+import type { PendingDocumentUpload } from '@/services/interventions/intervention-documents.service'
 
 export type InterventionFormValues = {
   clientId: string
@@ -14,8 +20,15 @@ export type InterventionFormValues = {
   status: InterventionStatus
   estimatedPrice: string
   finalPrice: string
+  depositAmount: string
+  paymentStatus: InterventionPaymentStatus
+  billedViaQonto: boolean
+  externalInvoiceRef: string
+  qontoDocumentUrl: string
   media: InterventionMedia
   partsLines: CommercialLine[]
+  pendingDocumentUploads: PendingDocumentUpload[]
+  notifyClientOnDocuments: boolean
 }
 
 export type InterventionSortField = 'createdAt' | 'status' | 'client' | 'estimatedPrice'
@@ -62,8 +75,15 @@ export const EMPTY_INTERVENTION_FORM: InterventionFormValues = {
   status: 'diagnostic',
   estimatedPrice: '',
   finalPrice: '',
+  depositAmount: '',
+  paymentStatus: 'none',
+  billedViaQonto: false,
+  externalInvoiceRef: '',
+  qontoDocumentUrl: '',
   media: { photos: [] },
   partsLines: [],
+  pendingDocumentUploads: [],
+  notifyClientOnDocuments: true,
 }
 
 export const FUTURE_INTERVENTION_FEATURES = {

@@ -1,8 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ROUTES } from '@/config/routes'
-import { prefillFromDevice } from '@/modules/commercial/utils/document-prefill'
 import type { Device } from '@/types/entities'
 import type { DeviceFormValues } from '@/modules/devices/types/device-module.types'
 import {
@@ -42,7 +39,6 @@ function formValuesToPayload(values: DeviceFormValues) {
 }
 
 export function DevicesPage() {
-  const navigate = useNavigate()
   const { devices, loading, saving, createDevice, updateDevice, removeDevice } = useDevices()
   const { clients } = useClients()
 
@@ -166,11 +162,6 @@ export function DevicesPage() {
                   rows={rows}
                   onEdit={handleEdit}
                   onDelete={setDeleteTarget}
-                  onCreateQuote={(row) =>
-                    navigate(ROUTES.QUOTES, {
-                      state: { prefill: prefillFromDevice(row) },
-                    })
-                  }
                   deletingId={deletingId}
                 />
                 <ClientsPagination

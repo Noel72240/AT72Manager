@@ -8,6 +8,7 @@ export type AuditAction =
   | 'export'
   | 'import'
   | 'permission_denied'
+  | 'view'
 
 export type AuditResource =
   | 'client'
@@ -22,6 +23,7 @@ export type AuditResource =
   | 'session'
   | 'settings'
   | 'ai'
+  | 'document'
 
 export type AuditLogEntry = {
   id: string
@@ -49,6 +51,7 @@ export type SecurityEventType =
   | 'permission_denied'
   | 'role_changed'
   | 'suspicious_activity'
+  | 'document_download_denied'
 
 export type SecuritySeverity = 'info' | 'warning' | 'critical'
 

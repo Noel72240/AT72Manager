@@ -3,8 +3,6 @@ import type {
   Client,
   Device,
   Intervention,
-  Invoice,
-  Quote,
   StockMovement,
 } from '@/types/entities'
 
@@ -174,7 +172,7 @@ type QuoteRow = {
   client_id: string
   intervention_id: string | null
   device_id: string | null
-  status: Quote['status']
+  status: 'draft' | 'sent' | 'accepted' | 'rejected'
   title: string | null
   notes: string | null
   lines: Json
@@ -250,7 +248,7 @@ type InvoiceRow = {
   intervention_id: string | null
   device_id: string | null
   quote_id: string | null
-  status: Invoice['status']
+  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'paid'
   title: string | null
   notes: string | null
   lines: Json

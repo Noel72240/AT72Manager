@@ -16,18 +16,17 @@ export type {
   InterventionUpdate,
 } from './intervention.types'
 export type {
+  InterventionDocument,
+  InterventionDocumentType,
+  PortalClientDocument,
+  PortalDocumentBadge,
+} from './intervention-document.types'
+export type {
   CommercialLine,
   CommercialLineKind,
   DocumentTotals,
 } from './commercial.types'
 export { DEFAULT_VAT_RATE, LINE_KIND_LABELS } from './commercial.types'
-export type { Quote, QuoteInsert, QuoteStatus, QuoteUpdate } from './quote.types'
-export type {
-  Invoice,
-  InvoiceInsert,
-  InvoiceStatus,
-  InvoiceUpdate,
-} from './invoice.types'
 export type {
   SparePart,
   SparePartInsert,
@@ -51,8 +50,6 @@ export type EntityName =
   | 'clients'
   | 'interventions'
   | 'devices'
-  | 'quotes'
-  | 'invoices'
   | 'spare_parts'
   | 'stock_movements'
   | 'activity_feed'

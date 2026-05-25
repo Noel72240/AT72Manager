@@ -112,6 +112,23 @@ export const MIGRATIONS: Record<number, MigrationFn> = {
       db.createObjectStore(STORES.portalCache)
     }
   },
+  15: (db) => {
+    if (!db.objectStoreNames.contains(STORES.interventionDocuments)) {
+      const docs = db.createObjectStore(STORES.interventionDocuments, { keyPath: 'id' })
+      docs.createIndex('by-intervention', 'interventionId')
+      docs.createIndex('by-client', 'clientId')
+    }
+  },
+  16: (db) => {
+    if (!db.objectStoreNames.contains(STORES.interventionDocumentEvents)) {
+      const events = db.createObjectStore(STORES.interventionDocumentEvents, { keyPath: 'id' })
+      events.createIndex('by-intervention', 'interventionId')
+      events.createIndex('by-document', 'documentId')
+    }
+    if (!db.objectStoreNames.contains(STORES.interventionDocumentBlobs)) {
+      db.createObjectStore(STORES.interventionDocumentBlobs, { keyPath: 'id' })
+    }
+  },
 }
 
 export function runAllMigrations(

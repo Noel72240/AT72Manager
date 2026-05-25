@@ -114,6 +114,13 @@ export function BackupSettingsPanel({ settings, onChange, onSave }: BackupSettin
           </p>
         )}
 
+        {s.cloudEnabled && s.cloudProvider === 'supabase' && (
+          <p className="rounded-lg border border-neon-blue/20 bg-neon-blue/5 px-3 py-2 text-xs text-text-muted">
+            Pour voir une sauvegarde dans Supabase : cliquez <strong>Archive ZIP</strong> (ou attendez
+            l’auto-sauvegarde). Les entrées « Avant restauration » restent locales uniquement.
+          </p>
+        )}
+
         <button
           type="button"
           onClick={onSave}

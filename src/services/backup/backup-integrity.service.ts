@@ -72,22 +72,27 @@ export async function verifyBackupArchive(archive: unknown): Promise<BackupInteg
 
 export function validateReferentialIntegrity(data: BackupArchive['data']): string[] {
   const warnings: string[] = []
-  const clientIds = new Set((data.clients as Array<{ id: string }>).map((c) => c.id))
-  const interventionIds = new Set((data.interventions as Array<{ id: string }>).map((i) => i.id))
+  const clients = data.clients ?? []
+  const devices = data.devices ?? []
+  const interventions = data.interventions ?? []
+  const photos = data.interventionPhotos ?? []
 
-  for (const device of data.devices as Array<{ clientId?: string }>) {
+  const clientIds = new Set((clients as Array<{ id: string }>).map((c) => c.id))
+  const interventionIds = new Set((interventions as Array<{ id: string }>).map((i) => i.id))
+
+  for (const device of devices as Array<{ clientId?: string }>) {
     if (device.clientId && !clientIds.has(device.clientId)) {
       warnings.push(`Appareil référence client inconnu : ${device.clientId}`)
     }
   }
 
-  for (const intervention of data.interventions as Array<{ clientId?: string }>) {
+  for (const intervention of interventions as Array<{ clientId?: string }>) {
     if (intervention.clientId && !clientIds.has(intervention.clientId)) {
       warnings.push(`Intervention référence client inconnu : ${intervention.clientId}`)
     }
   }
 
-  for (const photo of data.interventionPhotos as Array<{ interventionId?: string }>) {
+  for (const photo of photos as Array<{ interventionId?: string }>) {
     if (photo.interventionId && !interventionIds.has(photo.interventionId)) {
       warnings.push(`Photo référence intervention inconnue : ${photo.interventionId}`)
     }

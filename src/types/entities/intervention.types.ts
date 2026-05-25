@@ -20,18 +20,34 @@ export type InterventionPhoto = {
   syncStatus?: 'local' | 'pending' | 'synced'
 }
 
-/** Médias terrain SAV (photos, signatures, PDF) */
+/** Document commercial Qonto partagé avec le client (devis / facture PDF) */
+export type InterventionClientDocumentKind = 'qonto_quote' | 'qonto_invoice'
+
+export type InterventionClientDocument = {
+  id: string
+  kind: InterventionClientDocumentKind
+  fileName: string
+  /** Chemin Supabase Storage (sans dataUrl en sync cloud) */
+  storagePath?: string
+  uploadedAt: string
+  syncStatus?: 'local' | 'pending' | 'synced'
+  /** Présent en local IndexedDB uniquement */
+  dataUrl?: string
+}
+
+/** Statut paiement simplifié (facturation via Qonto) */
+export type InterventionPaymentStatus = 'none' | 'deposit_paid' | 'paid' | 'waived'
+
 export type InterventionMedia = {
   photos?: InterventionPhoto[]
+  /** PDF devis/facture Qonto visibles sur le portail client */
+  clientDocuments?: InterventionClientDocument[]
   clientSignature?: string
   technicianSignature?: string
   /** @deprecated Utiliser clientSignature */
   signatureUrl?: string
   pdfUrl?: string
   aiDiagnosticHint?: string
-  /** Préparation devis / facture / IA */
-  quoteDraft?: Record<string, unknown>
-  invoiceDraft?: Record<string, unknown>
   aiReportDraft?: Record<string, unknown>
 }
 
@@ -57,6 +73,15 @@ export type Intervention = {
   assignedTechnicianId?: string
   estimatedPrice?: number
   finalPrice?: number
+  /** Acompte client (€) */
+  depositAmount?: number
+  paymentStatus?: InterventionPaymentStatus
+  /** Facturé dans Qonto (ou autre outil externe) */
+  billedViaQonto?: boolean
+  /** Référence facture externe (ex. numéro Qonto) */
+  externalInvoiceRef?: string
+  /** Lien direct vers le document Qonto */
+  qontoDocumentUrl?: string
   media?: InterventionMedia
   /** Pièces utilisées sur l'intervention */
   partsLines?: CommercialLine[]

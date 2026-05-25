@@ -1,4 +1,8 @@
-import type { InterventionMedia, InterventionPhoto } from '@/types/entities/intervention.types'
+import type {
+  InterventionClientDocument,
+  InterventionMedia,
+  InterventionPhoto,
+} from '@/types/entities/intervention.types'
 import { EMPTY_INTERVENTION_MEDIA } from '@/modules/interventions/field/types/field.types'
 import { photoDebug } from '@/modules/interventions/field/utils/photo-debug'
 
@@ -6,11 +10,13 @@ export function normalizeInterventionMedia(raw?: InterventionMedia | null): Inte
   if (!raw) return { ...EMPTY_INTERVENTION_MEDIA, photos: [] }
 
   const photos = normalizePhotos(raw.photos)
+  const clientDocuments = normalizeClientDocuments(raw.clientDocuments)
 
   return {
     ...EMPTY_INTERVENTION_MEDIA,
     ...raw,
     photos,
+    clientDocuments,
     clientSignature: raw.clientSignature ?? raw.signatureUrl,
     technicianSignature: raw.technicianSignature,
   }
@@ -39,6 +45,45 @@ function normalizePhotos(photos?: InterventionPhoto[] | string[] | unknown): Int
   }
 
   return result
+}
+
+function normalizeClientDocuments(raw?: unknown): InterventionClientDocument[] {
+  if (!raw || !Array.isArray(raw) || raw.length === 0) return []
+
+  const result: InterventionClientDocument[] = []
+  for (const [index, entry] of raw.entries()) {
+    if (!entry || typeof entry !== 'object') continue
+    const row = entry as Record<string, unknown>
+    const kind = row.kind as InterventionClientDocument['kind']
+    if (kind !== 'qonto_quote' && kind !== 'qonto_invoice') continue
+
+    result.push({
+      id: String(row.id ?? `doc-${index}`),
+      kind,
+      fileName: String(row.fileName ?? row.file_name ?? 'document.pdf'),
+      storagePath: (row.storagePath ?? row.storage_path) as string | undefined,
+      uploadedAt: String(row.uploadedAt ?? row.uploaded_at ?? new Date().toISOString()),
+      syncStatus: (row.syncStatus ?? row.sync_status) as InterventionClientDocument['syncStatus'],
+      dataUrl: (row.dataUrl ?? row.data_url) as string | undefined,
+    })
+  }
+  return result
+}
+
+export function stripClientDocumentsForRemote(
+  documents?: InterventionClientDocument[],
+): InterventionClientDocument[] | undefined {
+  if (!documents?.length) return documents
+  return documents.map(({ dataUrl: _dataUrl, ...meta }) => meta)
+}
+
+export function sanitizeMediaForRemote(media?: InterventionMedia | null): InterventionMedia | undefined {
+  if (!media) return undefined
+  const normalized = normalizeInterventionMedia(media)
+  return {
+    ...normalized,
+    clientDocuments: stripClientDocumentsForRemote(normalized.clientDocuments),
+  }
 }
 
 function normalizePhotoEntry(raw: unknown, index: number): InterventionPhoto | null {

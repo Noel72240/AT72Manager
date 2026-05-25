@@ -1,10 +1,13 @@
-import { Camera, FileText, Pencil, Smartphone, Trash2, UserRound } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Camera, ExternalLink, Pencil, Smartphone, Trash2, UserRound } from 'lucide-react'
 import type { Client } from '@/types/entities'
 import type { InterventionTableRow } from '@/modules/interventions/types/intervention-module.types'
 import type { InterventionPdfKind } from '@/modules/interventions/field/types/field.types'
 import { InterventionStatusBadge } from '@/modules/interventions/components/InterventionStatusBadge'
 import { InterventionPdfMenu } from '@/modules/interventions/field/components/InterventionPdfMenu'
 import { countMediaItems } from '@/modules/interventions/field/utils/media-utils'
+import { PAYMENT_STATUS_LABELS } from '@/modules/interventions/utils/payment-labels'
+import { buildQontoOpenUrl, getQontoAppUrl } from '@/services/settings/qonto-settings.service'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 
@@ -14,7 +17,6 @@ type InterventionsTableProps = {
   onEdit: (row: InterventionTableRow) => void
   onDelete: (row: InterventionTableRow) => void
   onExportPdf: (row: InterventionTableRow, kind: InterventionPdfKind) => void
-  onCreateQuote?: (row: InterventionTableRow) => void
   isExporting: (interventionId: string, kind?: InterventionPdfKind) => boolean
   deletingId?: string | null
 }
@@ -38,20 +40,25 @@ export function InterventionsTable({
   onEdit,
   onDelete,
   onExportPdf,
-  onCreateQuote,
   isExporting,
   deletingId,
 }: InterventionsTableProps) {
+  const [qontoBaseUrl, setQontoBaseUrl] = useState('https://app.qonto.com')
+
+  useEffect(() => {
+    void getQontoAppUrl().then(setQontoBaseUrl)
+  }, [])
+
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[1000px] border-collapse text-left text-sm">
+      <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
         <thead>
           <tr className="border-b border-border/80 text-xs uppercase tracking-wide text-text-muted">
             <th className="px-4 py-3 font-medium">Client</th>
             <th className="px-4 py-3 font-medium">Appareil</th>
             <th className="px-4 py-3 font-medium">Panne signalée</th>
             <th className="px-4 py-3 font-medium">Statut</th>
-            <th className="px-4 py-3 font-medium">Prix</th>
+            <th className="px-4 py-3 font-medium">Prix / paiement</th>
             <th className="px-4 py-3 font-medium">Créé le</th>
             <th className="px-4 py-3 text-right font-medium">Actions</th>
           </tr>
@@ -60,6 +67,7 @@ export function InterventionsTable({
           {rows.map((row) => {
             const mediaCount = countMediaItems(row.media)
             const client = clientsById.get(row.clientId)
+            const paymentLabel = PAYMENT_STATUS_LABELS[row.paymentStatus ?? 'none']
 
             return (
               <tr
@@ -103,10 +111,14 @@ export function InterventionsTable({
                 </td>
                 <td className="px-4 py-3.5 text-text-secondary">
                   <p>{formatPrice(row.estimatedPrice)}</p>
-                  {row.finalPrice !== undefined ? (
+                  {row.depositAmount !== undefined ? (
                     <p className="mt-0.5 text-xs text-text-muted">
-                      Final : {formatPrice(row.finalPrice)}
+                      Acompte : {formatPrice(row.depositAmount)}
                     </p>
+                  ) : null}
+                  <p className="mt-0.5 text-xs">{paymentLabel}</p>
+                  {row.billedViaQonto && row.externalInvoiceRef ? (
+                    <p className="mt-0.5 text-xs text-neon-blue">{row.externalInvoiceRef}</p>
                   ) : null}
                 </td>
                 <td className="px-4 py-3.5 text-text-secondary">{formatDate(row.createdAt)}</td>
@@ -117,17 +129,24 @@ export function InterventionsTable({
                       isExporting={isExporting(row.id)}
                       onExport={(kind) => onExportPdf(row, kind)}
                     />
-                    {onCreateQuote ? (
+                    {(row.billedViaQonto || row.externalInvoiceRef) && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        aria-label="Créer un devis"
-                        title="Créer un devis"
-                        onClick={() => onCreateQuote(row)}
+                        aria-label="Ouvrir Qonto"
+                        title="Ouvrir Qonto"
+                        onClick={() => {
+                          const url = buildQontoOpenUrl(
+                            qontoBaseUrl,
+                            row.externalInvoiceRef,
+                            row.qontoDocumentUrl,
+                          )
+                          window.open(url, '_blank', 'noopener,noreferrer')
+                        }}
                       >
-                        <FileText className="size-4 text-neon-blue" />
+                        <ExternalLink className="size-4 text-neon-blue" />
                       </Button>
-                    ) : null}
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"

@@ -172,6 +172,12 @@ export const syncQueue = {
     await Promise.all(dead.map((item) => db.delete(STORES.syncQueue, item.id)))
   },
 
+  async clearAll(): Promise<void> {
+    const db = await getDb()
+    const all = await db.getAll(STORES.syncQueue)
+    await Promise.all(all.map((item) => db.delete(STORES.syncQueue, item.id)))
+  },
+
   async getFailureSummary(): Promise<{ count: number; hint: string | null; deadLetter: number }> {
     const failed = await this.getFailed()
     const deadLetter = await this.getDeadLetterCount()

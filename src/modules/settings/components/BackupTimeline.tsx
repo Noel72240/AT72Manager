@@ -109,34 +109,49 @@ export function BackupTimeline({ snapshots, onRollback, onDelete, restoring }: B
                       <ShieldCheck className="h-3.5 w-3.5" /> SHA-256 OK
                     </span>
                   )}
-                  {snap.cloudStatus === 'uploaded' && (
+                  {snap.cloudStatus === 'pending' && (
                     <span className="inline-flex items-center gap-1 text-neon-blue">
-                      <Cloud className="h-3.5 w-3.5" /> Cloud
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Cloud…
                     </span>
                   )}
+                {snap.cloudStatus === 'uploaded' && (
+                  <span className="inline-flex items-center gap-1 text-neon-blue">
+                    <Cloud className="h-3.5 w-3.5" /> Cloud
+                    {snap.payloadGzipBase64 ? '' : ' (rollback via cloud)'}
+                  </span>
+                )}
                   {snap.cloudStatus === 'failed' && (
-                    <span className="inline-flex items-center gap-1 text-warning">
+                    <span
+                      className="inline-flex items-center gap-1 text-warning"
+                      title={snap.errorMessage ?? 'Échec upload cloud'}
+                    >
                       <XCircle className="h-3.5 w-3.5" /> Cloud échec
+                      {snap.errorMessage ? `: ${snap.errorMessage.slice(0, 80)}` : ''}
                     </span>
                   )}
                 </div>
               </div>
               <div className="flex gap-2">
-                {snap.payloadGzipBase64 && (
-                  <button
-                    type="button"
-                    disabled={restoring}
-                    onClick={() => onRollback(snap.id)}
-                    className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:border-neon-blue/40 hover:bg-primary-muted disabled:opacity-50"
-                  >
-                    {restoring ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <RotateCcw className="h-3.5 w-3.5" />
-                    )}
-                    Rollback
-                  </button>
-                )}
+                <button
+                  type="button"
+                  disabled={restoring || (!snap.payloadGzipBase64 && snap.cloudStatus !== 'uploaded')}
+                  title={
+                    snap.payloadGzipBase64
+                      ? 'Restaurer cet état (recharge l’application)'
+                      : snap.cloudStatus === 'uploaded'
+                        ? 'Télécharger depuis Supabase Storage puis restaurer'
+                        : 'Payload local absent — importez le fichier .json/.zip exporté'
+                  }
+                  onClick={() => onRollback(snap.id)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:border-neon-blue/40 hover:bg-primary-muted disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {restoring ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <RotateCcw className="h-3.5 w-3.5" />
+                  )}
+                  Rollback
+                </button>
                 <button
                   type="button"
                   onClick={() => onDelete(snap.id)}
@@ -146,6 +161,12 @@ export function BackupTimeline({ snapshots, onRollback, onDelete, restoring }: B
                 </button>
               </div>
             </motion.div>
+            {!snap.payloadGzipBase64 && snap.cloudStatus !== 'uploaded' && (
+              <p className="mt-2 text-xs text-warning">
+                Rollback indisponible : données compressées non conservées localement. Réimportez
+                l’export JSON/ZIP de cette sauvegarde.
+              </p>
+            )}
             <div className="mt-3 flex flex-wrap gap-2">
               {Object.entries(snap.entityCounts).map(([key, count]) =>
                 count ? (

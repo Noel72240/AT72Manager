@@ -1,4 +1,8 @@
-import type { InterventionMedia, InterventionPhoto } from '@/types/entities/intervention.types'
+import type {
+  InterventionClientDocument,
+  InterventionMedia,
+  InterventionPhoto,
+} from '@/types/entities/intervention.types'
 import { normalizeInterventionMedia } from '@/modules/interventions/field/utils/media-utils'
 import { photoDebug } from '@/modules/interventions/field/utils/photo-debug'
 
@@ -49,7 +53,30 @@ export function mergeInterventionMedia(
   return {
     ...remoteNorm,
     photos: mergedPhotos,
+    clientDocuments: mergeClientDocuments(localNorm.clientDocuments, remoteNorm.clientDocuments),
     clientSignature: localNorm.clientSignature || remoteNorm.clientSignature,
     technicianSignature: localNorm.technicianSignature || remoteNorm.technicianSignature,
   }
+}
+
+function mergeClientDocuments(
+  local?: InterventionClientDocument[],
+  remote?: InterventionClientDocument[],
+): InterventionClientDocument[] {
+  const map = new Map<string, InterventionClientDocument>()
+
+  for (const doc of remote ?? []) {
+    if (doc.id) map.set(doc.id, doc)
+  }
+
+  for (const doc of local ?? []) {
+    const existing = map.get(doc.id)
+    if (!existing || (doc.dataUrl && !existing.dataUrl)) {
+      map.set(doc.id, doc)
+    } else if (doc.storagePath && !existing.storagePath) {
+      map.set(doc.id, { ...existing, ...doc })
+    }
+  }
+
+  return Array.from(map.values())
 }

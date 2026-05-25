@@ -27,8 +27,6 @@ export const COMMAND_ITEMS: CommandItem[] = [
   { id: 'nav-calendar', label: 'Planning', group: 'Navigation', href: ROUTES.CALENDAR, keywords: 'agenda rdv' },
   { id: 'nav-stock', label: 'Stock', group: 'Navigation', href: ROUTES.STOCK },
   { id: 'nav-parts', label: 'Pièces', group: 'Navigation', href: ROUTES.PARTS },
-  { id: 'nav-quotes', label: 'Devis', group: 'Navigation', href: ROUTES.QUOTES },
-  { id: 'nav-invoices', label: 'Factures', group: 'Navigation', href: ROUTES.INVOICES },
   { id: 'nav-settings', label: 'Paramètres', group: 'Navigation', href: `${ROUTES.SETTINGS}?tab=backup`, keywords: 'settings config' },
   { id: 'nav-integrations', label: 'Intégrations Google Calendar', group: 'Navigation', href: `${ROUTES.SETTINGS}?tab=integrations` },
   { id: 'nav-ai', label: 'Assistant IA', group: 'Navigation', href: ROUTES.ASSISTANT, keywords: 'chat assistant' },

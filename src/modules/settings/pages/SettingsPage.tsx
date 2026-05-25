@@ -9,11 +9,14 @@ import { useBackupStore } from '@/store/backup.store'
 import { BackupActionsPanel } from '@/modules/settings/components/BackupActionsPanel'
 import { BackupTimeline, BackupIntegrityBanner } from '@/modules/settings/components/BackupTimeline'
 import { BackupSettingsPanel } from '@/modules/settings/components/BackupSettingsPanel'
+import { BackupRestoreLogsPanel } from '@/modules/settings/components/BackupRestoreLogsPanel'
+import { BackupCloudPanel } from '@/modules/settings/components/BackupCloudPanel'
 import { AuditTrailPanel } from '@/modules/users/components/AuditTrailPanel'
 import { SecurityLogsPanel } from '@/modules/users/components/SecurityLogsPanel'
 import { TeamMembersPanel } from '@/modules/users/components/TeamMembersPanel'
 import { GoogleCalendarSettingsPanel } from '@/modules/settings/components/GoogleCalendarSettingsPanel'
 import { DesktopProductionPanel } from '@/modules/settings/components/DesktopProductionPanel'
+import { QontoIntegrationPanel } from '@/modules/settings/components/QontoIntegrationPanel'
 import { DEFAULT_BACKUP_SETTINGS } from '@/services/backup/backup.types'
 import { staggerContainer, fadeInUp } from '@/utils/motion'
 
@@ -28,18 +31,28 @@ export function SettingsPage() {
 
   const {
     snapshots,
+    cloudFiles,
     settings,
     loading,
+    loadingCloud,
+    cloudError,
     exporting,
     restoring,
+    selfTesting,
     lastError,
+    restoreLogs,
     load,
     updateSettings,
     exportJson,
     exportZip,
     importFile,
+    dryRunFile,
+    restoreFromCloud,
     rollback,
     removeSnapshot,
+    runSelfTest,
+    clearRestoreLogs,
+    refreshCloudFiles,
   } = useBackupStore()
 
   useEffect(() => {
@@ -152,6 +165,7 @@ export function SettingsPage() {
       {tab === 'general' && (
         <motion.div variants={fadeInUp} className="space-y-6">
           <DesktopProductionPanel />
+          <QontoIntegrationPanel />
           <motion.section className="rounded-xl border border-border bg-surface-elevated/80 p-6">
             <h2 className="text-lg font-semibold text-text-primary">Apparence</h2>
             <p className="mt-1 text-sm text-text-muted">
@@ -174,11 +188,32 @@ export function SettingsPage() {
                 <BackupActionsPanel
                   exporting={exporting}
                   restoring={restoring}
+                  selfTesting={selfTesting}
                   onExportJson={() => void exportJson(userId)}
                   onExportZip={() => void exportZip(userId)}
                   onImport={(file, entities) => void importFile(userId, file, entities)}
+                  onDryRun={(file, entities) => void dryRunFile(userId, file, entities)}
+                  onSelfTest={() => void runSelfTest(userId)}
                 />
               </PermissionGate>
+
+              <BackupRestoreLogsPanel logs={restoreLogs} onClear={clearRestoreLogs} />
+
+              {lastError && (
+                <p className="rounded-lg border border-danger/30 bg-danger/5 px-4 py-2 text-sm text-danger">
+                  {lastError}
+                </p>
+              )}
+
+              <BackupCloudPanel
+                files={cloudFiles}
+                loading={loadingCloud}
+                restoring={restoring}
+                cloudEnabled={backupSettings.cloudEnabled && backupSettings.cloudProvider === 'supabase'}
+                onRefresh={() => void refreshCloudFiles(userId!)}
+                onRestore={(path) => void restoreFromCloud(userId!, path)}
+                lastError={cloudError}
+              />
 
               <section>
                 <h2 className="mb-4 text-lg font-semibold text-text-primary">Historique des sauvegardes</h2>

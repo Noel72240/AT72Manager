@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Archive, FileJson, Upload } from 'lucide-react'
+import { Archive, FileJson, FlaskConical, ScanSearch, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import {
@@ -15,6 +15,9 @@ type BackupActionsPanelProps = {
   onExportJson: () => void
   onExportZip: () => void
   onImport: (file: File, entities?: BackupEntityKey[]) => void
+  onDryRun?: (file: File, entities?: BackupEntityKey[]) => void
+  onSelfTest?: () => void
+  selfTesting?: boolean
 }
 
 export function BackupActionsPanel({
@@ -23,9 +26,14 @@ export function BackupActionsPanel({
   onExportJson,
   onExportZip,
   onImport,
+  onDryRun,
+  onSelfTest,
+  selfTesting = false,
 }: BackupActionsPanelProps) {
   const fileRef = useRef<HTMLInputElement>(null)
+  const dryRunRef = useRef<HTMLInputElement>(null)
   const [selectiveOpen, setSelectiveOpen] = useState(false)
+  const [pendingDryRun, setPendingDryRun] = useState(false)
   const [selected, setSelected] = useState<BackupEntityKey[]>([...ALL_BACKUP_ENTITY_KEYS])
 
   function toggleEntity(key: BackupEntityKey) {
@@ -89,8 +97,61 @@ export function BackupActionsPanel({
         type="file"
         accept=".json,.zip,application/json,application/zip"
         className="hidden"
-        onChange={(e) => handleFileChange(e.target.files?.[0])}
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          e.target.value = ''
+          handleFileChange(file)
+        }}
       />
+      <input
+        ref={dryRunRef}
+        type="file"
+        accept=".json,.zip,application/json,application/zip"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          e.target.value = ''
+          if (!file || !onDryRun) return
+          if (selectiveOpen && selected.length < ALL_BACKUP_ENTITY_KEYS.length) {
+            onDryRun(file, selected)
+          } else {
+            onDryRun(file)
+          }
+          setPendingDryRun(false)
+        }}
+      />
+
+      {(onDryRun || onSelfTest) && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {onDryRun && (
+            <Button
+              size="sm"
+              variant="secondary"
+              loading={restoring && pendingDryRun}
+              leftIcon={<ScanSearch className="h-4 w-4" />}
+              disabled={restoring}
+              onClick={() => {
+                setPendingDryRun(true)
+                dryRunRef.current?.click()
+              }}
+            >
+              Simulation (dry-run)
+            </Button>
+          )}
+          {onSelfTest && (
+            <Button
+              size="sm"
+              variant="secondary"
+              loading={selfTesting}
+              leftIcon={<FlaskConical className="h-4 w-4" />}
+              disabled={restoring || selfTesting}
+              onClick={onSelfTest}
+            >
+              Test automatique backup
+            </Button>
+          )}
+        </div>
+      )}
 
       <div className="mt-6 border-t border-border/60 pt-4">
         <button

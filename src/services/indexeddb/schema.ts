@@ -1,5 +1,5 @@
 export const DB_NAME = 'at72manager'
-export const DB_VERSION = 14
+export const DB_VERSION = 16
 
 export const STORES = {
   meta: 'meta',
@@ -8,6 +8,9 @@ export const STORES = {
   interventions: 'interventions',
   devices: 'devices',
   interventionPhotos: 'intervention_photos',
+  interventionDocuments: 'intervention_documents',
+  interventionDocumentEvents: 'intervention_document_events',
+  interventionDocumentBlobs: 'intervention_document_blobs',
   quotes: 'quotes',
   invoices: 'invoices',
   spareParts: 'spare_parts',

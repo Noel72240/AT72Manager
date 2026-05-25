@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Calendar, FileText, MessageCircle, Wrench } from 'lucide-react'
+import { Calendar, History, MessageCircle, Wrench } from 'lucide-react'
 import { PORTAL_ROUTES } from '@/config/portal.routes'
 import { usePortalAuthStore } from '@/store/portal-auth.store'
 import { usePortalDataStore } from '@/store/portal-data.store'
@@ -13,7 +13,6 @@ import { cn } from '@/utils/cn'
 export function PortalDashboardPage() {
   const session = usePortalAuthStore((s) => s.session)
   const interventions = usePortalDataStore((s) => s.interventions)
-  const quotes = usePortalDataStore((s) => s.quotes)
   const notifications = usePortalDataStore((s) => s.notifications)
   const repairEvents = usePortalDataStore((s) => s.repairEvents)
   const loading = usePortalDataStore((s) => s.loading)
@@ -26,7 +25,6 @@ export function PortalDashboardPage() {
       )
     : []
   const progress = timeline.length ? getTimelineProgress(timeline) : 0
-  const pendingQuotes = quotes.filter((q) => q.status === 'sent').length
   const unreadNotifs = notifications.filter((n) => !n.readAt).length
 
   return (
@@ -40,14 +38,14 @@ export function PortalDashboardPage() {
           Bonjour{session ? `, ${session.fullName.split(' ')[0]}` : ''}
         </motion.h1>
         <p className="mt-1 text-sm text-text-secondary">
-          Suivez vos réparations, devis et rendez-vous en temps réel.
+          Suivez vos réparations et rendez-vous en temps réel.
         </p>
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: 'Réparations actives', value: interventions.filter((i) => !['returned'].includes(i.status)).length, icon: Wrench, to: PORTAL_ROUTES.INTERVENTIONS },
-          { label: 'Devis en attente', value: pendingQuotes, icon: FileText, to: PORTAL_ROUTES.QUOTES },
+          { label: 'Historique', value: interventions.length, icon: History, to: PORTAL_ROUTES.HISTORY },
           { label: 'Notifications', value: unreadNotifs, icon: MessageCircle, to: PORTAL_ROUTES.NOTIFICATIONS },
           { label: 'Prochains RDV', value: interventions.filter((i) => i.scheduledAt).length, icon: Calendar, to: PORTAL_ROUTES.APPOINTMENTS },
         ].map((card, i) => (

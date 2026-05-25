@@ -3,9 +3,7 @@ import {
   Bot,
   ClipboardList,
   Cpu,
-  FileText,
   LayoutDashboard,
-  Receipt,
   Settings,
   Users,
   Warehouse,
@@ -47,18 +45,6 @@ export const navigationItems: NavItem[] = [
     label: 'Appareils',
     path: ROUTES.DEVICES,
     icon: Cpu,
-  },
-  {
-    id: 'quotes',
-    label: 'Devis',
-    path: ROUTES.QUOTES,
-    icon: FileText,
-  },
-  {
-    id: 'invoices',
-    label: 'Factures',
-    path: ROUTES.INVOICES,
-    icon: Receipt,
   },
   {
     id: 'parts',

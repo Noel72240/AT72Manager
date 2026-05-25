@@ -48,8 +48,6 @@ export const NAV_READ_PERMISSIONS: Partial<Record<string, PermissionResource>> =
   clients: 'clients',
   interventions: 'interventions',
   devices: 'clients',
-  quotes: 'quotes',
-  invoices: 'invoices',
   parts: 'stock',
   stock: 'stock',
   calendar: 'interventions',

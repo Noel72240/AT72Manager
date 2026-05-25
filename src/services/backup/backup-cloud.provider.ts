@@ -45,7 +45,11 @@ export async function uploadBackupToCloud(
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur cloud'
-    if (snapshotId) await updateSnapshotCloudStatus(snapshotId, 'failed', message)
+    if (snapshotId) {
+      await updateSnapshotCloudStatus(snapshotId, 'failed', {
+        errorMessage: message,
+      })
+    }
     return { ok: false, provider: settings.cloudProvider, error: message }
   }
 }
@@ -75,11 +79,15 @@ async function uploadToSupabaseStorage(
   })
 
   if (error) {
-    if (snapshotId) await updateSnapshotCloudStatus(snapshotId, 'failed', error.message)
+    if (snapshotId) {
+      await updateSnapshotCloudStatus(snapshotId, 'failed', { errorMessage: error.message })
+    }
     return { ok: false, provider: 'supabase', error: error.message }
   }
 
-  if (snapshotId) await updateSnapshotCloudStatus(snapshotId, 'uploaded')
+  if (snapshotId) {
+    await updateSnapshotCloudStatus(snapshotId, 'uploaded', { cloudStoragePath: path })
+  }
   return { ok: true, provider: 'supabase', path }
 }
 

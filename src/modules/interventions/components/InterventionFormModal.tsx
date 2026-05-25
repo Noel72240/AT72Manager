@@ -8,6 +8,8 @@ import {
   FUTURE_INTERVENTION_FEATURES,
 } from '@/modules/interventions/types/intervention-module.types'
 import { InterventionFieldSection } from '@/modules/interventions/field/components/InterventionFieldSection'
+import { InterventionBillingSection } from '@/modules/interventions/components/InterventionBillingSection'
+import { InterventionClientDocumentsPanel } from '@/modules/interventions/components/documents/InterventionClientDocumentsPanel'
 import { normalizeInterventionMedia } from '@/modules/interventions/field/utils/media-utils'
 import { STATUS_LABELS } from '@/modules/interventions/components/InterventionStatusBadge'
 import { ALL_STATUSES } from '@/modules/interventions/utils/intervention-labels'
@@ -66,10 +68,18 @@ function interventionToFormValues(intervention: Intervention): InterventionFormV
     estimatedPrice:
       intervention.estimatedPrice !== undefined ? String(intervention.estimatedPrice) : '',
     finalPrice: intervention.finalPrice !== undefined ? String(intervention.finalPrice) : '',
+    depositAmount:
+      intervention.depositAmount !== undefined ? String(intervention.depositAmount) : '',
+    paymentStatus: intervention.paymentStatus ?? 'none',
+    billedViaQonto: intervention.billedViaQonto ?? false,
+    externalInvoiceRef: intervention.externalInvoiceRef ?? '',
+    qontoDocumentUrl: intervention.qontoDocumentUrl ?? '',
     media: normalizeInterventionMedia(intervention.media),
     partsLines: intervention.partsLines?.length
       ? intervention.partsLines
       : [createEmptyLine('part')],
+    pendingDocumentUploads: [],
+    notifyClientOnDocuments: true,
   }
 }
 
@@ -91,6 +101,9 @@ function validate(values: InterventionFormValues, clients: Client[]): FormErrors
   }
   if (values.finalPrice.trim() && Number.isNaN(Number(values.finalPrice))) {
     errors.finalPrice = 'Montant invalide.'
+  }
+  if (values.depositAmount.trim() && Number.isNaN(Number(values.depositAmount))) {
+    errors.depositAmount = 'Montant invalide.'
   }
   return errors
 }
@@ -409,6 +422,21 @@ export function InterventionFormModal({
             />
           </div>
         </section>
+
+        <InterventionBillingSection values={values} disabled={saving} onChange={handleChange} />
+
+        <InterventionClientDocumentsPanel
+          intervention={intervention}
+          disabled={saving}
+          notifyClient={values.notifyClientOnDocuments}
+          onNotifyClientChange={(notifyClientOnDocuments) =>
+            handleChange('notifyClientOnDocuments', notifyClientOnDocuments)
+          }
+          pendingUploads={values.pendingDocumentUploads}
+          onPendingUploadsChange={(pendingDocumentUploads) =>
+            handleChange('pendingDocumentUploads', pendingDocumentUploads)
+          }
+        />
 
         <section className="space-y-4 border-t border-border/60 pt-6">
           <h4 className="text-xs font-semibold uppercase tracking-wide text-text-muted">

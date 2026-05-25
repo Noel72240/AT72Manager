@@ -42,3 +42,12 @@ export {
   markAutoBackupCompleted,
 } from '@/services/backup/backup-settings.service'
 export { uploadBackupToCloud, registerCustomCloudHandler } from '@/services/backup/backup-cloud.provider'
+export {
+  restoreBackupArchiveSafe,
+  reloadApplicationAfterRestore,
+} from '@/services/backup/backup-restore-engine.service'
+export { runBackupRestoreSelfTest } from '@/services/backup/backup-self-test.service'
+export { normalizeBackupArchive, normalizeBackupPayload } from '@/services/backup/backup-normalize.service'
+export { listCloudBackups, downloadBackupFromCloud, buildCloudBackupPath } from '@/services/backup/backup-cloud-download.service'
+export type { CloudBackupFile } from '@/services/backup/backup.types'
+export type { BackupLogEntry, BackupLogLevel } from '@/services/backup/backup-logger.service'

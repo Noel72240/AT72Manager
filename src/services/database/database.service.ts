@@ -17,8 +17,6 @@ const WORKSHOP_SCOPED_TABLES = new Set<TableName>([
   'clients',
   'devices',
   'interventions',
-  'quotes',
-  'invoices',
   'spare_parts',
   'stock_movements',
   'activity_feed',

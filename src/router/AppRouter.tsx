@@ -11,8 +11,6 @@ import { ProtectedRoute } from '@/router/ProtectedRoute'
 import { PublicRoute } from '@/router/PublicRoute'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { ClientsPage } from '@/modules/clients/pages/ClientsPage'
-import { QuotesPage } from '@/modules/quotes/pages/QuotesPage'
-import { InvoicesPage } from '@/modules/invoices/pages/InvoicesPage'
 import { PartsPage } from '@/modules/parts/pages/PartsPage'
 import { StockPage } from '@/modules/stock/pages/StockPage'
 import { CalendarPage } from '@/modules/calendar/pages/CalendarPage'
@@ -42,8 +40,6 @@ export function AppRouter() {
             <Route path={ROUTES.INTERVENTIONS} element={<InterventionsPage />} />
             <Route path={ROUTES.CLIENTS} element={<ClientsPage />} />
             <Route path={ROUTES.DEVICES} element={<DevicesPage />} />
-            <Route path={ROUTES.QUOTES} element={<QuotesPage />} />
-            <Route path={ROUTES.INVOICES} element={<InvoicesPage />} />
             <Route path={ROUTES.PARTS} element={<PartsPage />} />
             <Route path={ROUTES.STOCK} element={<StockPage />} />
             <Route path={ROUTES.CALENDAR} element={<CalendarPage />} />

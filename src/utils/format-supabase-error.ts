@@ -1,6 +1,61 @@
+/** Extrait un message lisible depuis une erreur Supabase, fetch, Error ou inconnue */
+export function extractErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (error && typeof error === 'object') {
+    const row = error as Record<string, unknown>
+    if (typeof row.message === 'string' && row.message.trim()) return row.message
+    if (typeof row.error === 'string' && row.error.trim()) return row.error
+    if (typeof row.error_description === 'string') return row.error_description
+    try {
+      return JSON.stringify(error)
+    } catch {
+      return 'Erreur inconnue'
+    }
+  }
+  if (typeof error === 'string') return error
+  return 'Erreur inconnue'
+}
+
 /** Traduit les erreurs Supabase courantes en messages utilisateur FR */
 export function formatSupabaseError(error: unknown): string {
-  const message = error instanceof Error ? error.message : String(error)
+  const message = extractErrorMessage(error)
+
+  if (
+    message.includes('intervention_documents') &&
+    (message.includes('schema cache') ||
+      message.includes('Could not find') ||
+      message.includes('does not exist') ||
+      message.includes('relation'))
+  ) {
+    return (
+      'La table Supabase « intervention_documents » est absente. ' +
+      'Exécutez supabase/migrations/018_intervention_documents_system.sql dans le SQL Editor Supabase, puis réessayez.'
+    )
+  }
+
+  if (
+    message.includes('Bucket not found') ||
+    message.includes('at72-documents') ||
+    message.includes('intervention-documents')
+  ) {
+    if (message.includes('Bucket not found')) {
+      return (
+        'Le bucket Storage « at72-documents » n\'existe pas encore. ' +
+        'Exécutez supabase/migrations/018_intervention_documents_system.sql (ou 017) dans Supabase, puis réessayez.'
+      )
+    }
+  }
+
+  if (message.includes('row-level security') || message.includes('RLS')) {
+    return (
+      'Accès refusé par les règles de sécurité Supabase (RLS). ' +
+      'Vérifiez que la migration 018 est appliquée et que vous êtes connecté à l\'atelier.'
+    )
+  }
+
+  if (message.includes('Duplicate') || message.includes('duplicate key')) {
+    return 'Ce document existe déjà — utilisez « Réessayer » ou supprimez-le puis réimportez.'
+  }
 
   if (message.includes('schema cache') || message.includes('Could not find')) {
     if (message.includes("'devices'") || message.includes('devices')) {

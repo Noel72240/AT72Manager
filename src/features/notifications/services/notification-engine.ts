@@ -1,4 +1,4 @@
-import type { Intervention, Invoice, Quote, SparePart } from '@/types/entities'
+import type { Intervention, SparePart } from '@/types/entities'
 import { getStockLevel } from '@/modules/inventory/utils/stock-level'
 import { ROUTES } from '@/config/routes'
 import { syncQueue } from '@/services/sync/sync-queue'
@@ -8,39 +8,22 @@ import { emitFeedItem } from '@/features/notifications/services/feed.service'
 const ACTIVE_STATUSES = ['diagnostic', 'in_progress', 'waiting_parts'] as const
 const URGENT_DAYS = 7
 
-function isInvoiceUnpaid(invoice: Invoice): boolean {
-  if (invoice.status === 'paid' || invoice.status === 'rejected' || invoice.status === 'draft') {
-    return false
-  }
-  if (!invoice.dueDate) return invoice.status === 'sent' || invoice.status === 'accepted'
-  return new Date(invoice.dueDate).getTime() < Date.now()
-}
-
 export async function runNotificationEngine(userId: string): Promise<void> {
-  const [parts, interventions, quotes, invoices, failedCount, pendingCount, lastSync] =
-    await Promise.all([
-      import('@/services/database/repositories/spare-parts.repository').then((m) =>
-        m.sparePartsRepository.list(),
-      ),
-      import('@/services/database/repositories/interventions.repository').then((m) =>
-        m.interventionsRepository.list(),
-      ),
-      import('@/services/database/repositories/quotes.repository').then((m) =>
-        m.quotesRepository.list(),
-      ),
-      import('@/services/database/repositories/invoices.repository').then((m) =>
-        m.invoicesRepository.list(),
-      ),
-      syncQueue.getFailedCount(),
-      syncQueue.getPendingCount(),
-      syncService.getLastSyncAt(),
-    ])
+  const [parts, interventions, failedCount, pendingCount, lastSync] = await Promise.all([
+    import('@/services/database/repositories/spare-parts.repository').then((m) =>
+      m.sparePartsRepository.list(),
+    ),
+    import('@/services/database/repositories/interventions.repository').then((m) =>
+      m.interventionsRepository.list(),
+    ),
+    syncQueue.getFailedCount(),
+    syncQueue.getPendingCount(),
+    syncService.getLastSyncAt(),
+  ])
 
   await scanStock(userId, parts)
   await scanInterventions(userId, interventions)
   await scanScheduledInterventions(userId, interventions)
-  await scanQuotes(userId, quotes)
-  await scanInvoices(userId, invoices)
   await scanSync(userId, failedCount, pendingCount, lastSync)
 }
 
@@ -144,44 +127,6 @@ async function scanScheduledInterventions(userId: string, interventions: Interve
         { dedupe: true, toast: false },
       )
     }
-  }
-}
-
-async function scanQuotes(userId: string, quotes: Quote[]) {
-  for (const quote of quotes.filter((q) => q.status === 'accepted')) {
-    await emitFeedItem(
-      userId,
-      {
-        kind: 'quote_accepted',
-        title: `Devis accepté ${quote.number}`,
-        message: quote.title ?? 'Prêt pour facturation',
-        href: ROUTES.QUOTES,
-        entityType: 'quote',
-        entityId: quote.id,
-        dedupeKey: `quote_accepted:${quote.id}`,
-      },
-      { dedupe: true },
-    )
-  }
-}
-
-async function scanInvoices(userId: string, invoices: Invoice[]) {
-  for (const invoice of invoices.filter(isInvoiceUnpaid)) {
-    await emitFeedItem(
-      userId,
-      {
-        kind: 'invoice_unpaid',
-        title: `Facture impayée ${invoice.number}`,
-        message: invoice.dueDate
-          ? `Échéance dépassée (${new Date(invoice.dueDate).toLocaleDateString('fr-FR')})`
-          : 'En attente de règlement',
-        href: ROUTES.INVOICES,
-        entityType: 'invoice',
-        entityId: invoice.id,
-        dedupeKey: `invoice_unpaid:${invoice.id}`,
-      },
-      { dedupe: true },
-    )
   }
 }
 

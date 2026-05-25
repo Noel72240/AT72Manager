@@ -1,8 +1,15 @@
 import { create } from 'zustand'
 import { portalApiService } from '@/services/portal/portal-api.service'
 import { portalCacheService } from '@/services/portal/portal-cache.service'
-import type { Client, Device, Intervention, Invoice, Quote } from '@/types/entities'
-import type { PortalMessage, PortalNotification, PortalRepairEvent } from '@/types/portal.types'
+import type { Client, Device, Intervention } from '@/types/entities'
+import type { PortalClientDocument } from '@/types/entities/intervention-document.types'
+import type {
+  PortalInvoice,
+  PortalMessage,
+  PortalNotification,
+  PortalQuote,
+  PortalRepairEvent,
+} from '@/types/portal.types'
 
 type PortalDataStore = {
   loading: boolean
@@ -11,10 +18,11 @@ type PortalDataStore = {
   client: Client | null
   interventions: Intervention[]
   devices: Device[]
-  quotes: Quote[]
-  invoices: Invoice[]
+  quotes: PortalQuote[]
+  invoices: PortalInvoice[]
   messages: PortalMessage[]
   notifications: PortalNotification[]
+  portalDocuments: PortalClientDocument[]
   repairEvents: PortalRepairEvent[]
   lastSyncAt: string | null
   error: string | null
@@ -33,6 +41,7 @@ export const usePortalDataStore = create<PortalDataStore>((set) => ({
   invoices: [],
   messages: [],
   notifications: [],
+  portalDocuments: [],
   repairEvents: [],
   lastSyncAt: null,
   error: null,
@@ -73,6 +82,7 @@ export const usePortalDataStore = create<PortalDataStore>((set) => ({
         invoices: data.invoices,
         messages: data.messages,
         notifications: data.notifications,
+        portalDocuments: data.portalDocuments,
         repairEvents: data.repairEvents,
         fromCache: false,
         offline: false,
